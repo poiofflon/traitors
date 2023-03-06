@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <h1>Welcome to the game!</h1>
+  <p>You are currently waiting for other players to join and for the administrator to start the game.</p>
+  <p>Players:</p>
+  <ul>
+    {% for player in players %}
+      <li>{{ player }}</li>
+    {% endfor %}
+  </ul>
+  {% if can_start_game %}
+    <form action="/start_game" method="POST">
+      <button type="submit">Start Game</button>
+    </form>
+  {% endif %}
+{% endblock %}

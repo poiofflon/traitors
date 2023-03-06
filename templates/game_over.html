@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Game Over</title>
+  </head>
+  <body>
+    <h1>Game Over</h1>
+    {% if winner %}
+      <p>{{ winner }} wins!</p>
+    {% else %}
+      <p>The game ended in a tie.</p>
+    {% endif %}
+  </body>
+</html>

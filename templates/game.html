@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Traitors Game</title>
+  </head>
+  <body>
+    <h1>Traitors Game</h1>
+    <h2>Players:</h2>
+    <form action="/results" method="post">
+      {% for player in players %}
+      <label>
+        <input type="checkbox" name="{{ player }}" value="{{ player }}">
+        {{ player }}{% if player in traitors %} (Traitor){% endif %}
+      </label>
+      <br>
+      {% endfor %}
+      <br>
+      <input type="submit" value="Submit">
+    </form>
+  </body>
+</html>

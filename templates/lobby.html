@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Waiting for Players...</h1>
+    <ul>
+        {% for player in players %}
+            <li>{{ player }}</li>
+        {% endfor %}
+    </ul>
+    {% if is_admin %}
+        <form action="{{ url_for('start_game') }}" method="POST">
+            <button type="submit">Start Game</button>
+        </form>
+    {% endif %}
+{% endblock %}
