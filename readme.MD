@@ -1,4 +1,6 @@
-**Game description**
+# The Traitors
+
+### **Game description**
 
 All players joining the game are randomly assigned (see variants) as a traitor or faithful. A minimum of 3 players are required.
 
@@ -26,3 +28,29 @@ would be able to understand if they read the code from the git respository, whic
 than one round could be player.
 
 More than one game could be enabled. Admins could set up games and users could then join.
+
+
+### **Game design/detail**
+
+#### home/index page:
+
+Welcomes players and summarises the number of players who have joined
+Text box to enter user name and button to join
+When the join button is clicked the users will be added to the join wait list.
+When an administrator joins the game, the game will start.
+
+#### Game page
+
+The game page will present a checkbox list of players in the game which is the voting board. Once a player has voted for by clicking a player or players they won’t be able to change their vote. The number of players eliminated each round will be a game setting. Cast votes will show to all players against the players name. 
+
+The page will display a timer showing the round time.
+
+Traitors will be able to see who the other traitors are by a check mark next to their name.
+
+A chat function will be provided to enable players to communicate with each other.
+
+Once all votes are cast or the round time is reached, the result of the elimination will be added to the chat.
+
+If all players have not voted to end the game, the timer will reset and a new round will start 	and the voting board will be cleared.
+
+At the midpoint of round, the tallied votes from the traitors will eliminate additional players. The number of players eliminated will be the same as the number eliminated in the public vote. If the traitors collectively vote for fewer players than the number to be eliminated, a faithful will be randomly selected.
