@@ -1,1 +1,4 @@
 flask
+isort
+black
+flake8
