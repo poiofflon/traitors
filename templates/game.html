@@ -2,6 +2,37 @@
 <html>
   <head>
     <title>Traitors Game</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+      // Retrieve chat messages
+      var chat_messages = {{ chat_messages|tojson|safe }};
+
+      // Display chat messages
+      for (var i = 0; i < chat_messages.length; i++) {
+        var message = chat_messages[i];
+        var sender = message['sender'];
+        var text = message['message'];
+        var html = '<p><strong>' + sender + ':</strong> ' + text + '</p>';
+        $('#chatbox').append(html);
+      }
+
+      function sendChat() {
+        console.log('sendChat() called'); // Add this line
+        var message = $('#chatinput').val();
+        if (message) {
+          $.post('/chat', {'message': message}, function() {
+            $('#chatinput').val('');
+            // Add new chat message to the array
+            chat_messages.push({'sender': '{{ session["player_name"] }}', 'message': message});
+            // Display new chat message
+            var sender = chat_messages.slice(-1)[0]['sender'];
+            var text = chat_messages.slice(-1)[0]['message'];
+            var html = '<p><strong>' + sender + ':</strong> ' + text + '</p>';
+            $('#chatbox').append(html);
+          });
+        }
+      }
+    </script>
   </head>
   <body>
     <h1>Traitors Game</h1>
@@ -16,6 +47,13 @@
       {% endfor %}
       <br>
       <input type="submit" value="Submit">
+    </form>
+
+    <h2>Chat:</h2>
+    <div id="chatbox"></div>
+    <form onsubmit="sendChat(); return false;">
+      <input type="text" id="chatinput">
+      <input type="submit" value="Send">
     </form>
   </body>
 </html>
