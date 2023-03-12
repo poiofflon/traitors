@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, session
+from flask_socketio import SocketIO
 import random
 # import hashlib
 
@@ -6,6 +7,8 @@ import random
 app = Flask(__name__)
 app.secret_key = 'some_secret'
 app.static_folder = 'static'
+
+socketio = SocketIO(app)
 
 players = []
 traitors = []
@@ -137,13 +140,21 @@ def results():
     return render_template('result.html', vote_count=vote_count, players=players)
 
 
-@app.route('/chat', methods=['POST'])
-def chat():
-    sender = session['player_name']
-    message = request.form['message']
+# @app.route('/chat', methods=['POST'])
+# def chat():
+#     sender = session['player_name']
+#     message = request.form['message']
+#     chat_messages.append({'sender': sender, 'message': message})
+#     return 'OK'
+
+
+@socketio.on('message')
+def handle_message(data):
+    sender = data['sender']
+    message = data['message']
     chat_messages.append({'sender': sender, 'message': message})
-    return 'OK'
+    SocketIO.emit('message', {'sender': sender, 'message': message}, broadcast=True)
 
 
 if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=8000, debug=True)
+    socketio.run(app, host='127.0.0.1', port=8000)

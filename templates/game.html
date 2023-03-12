@@ -4,10 +4,8 @@
     <title>Traitors Game</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-      // Retrieve chat messages
-      var chat_messages = {{ chat_messages|tojson|safe }};
-
       // Display chat messages
+      var chat_messages = {{ chat_messages|tojson|safe }};
       for (var i = 0; i < chat_messages.length; i++) {
         var message = chat_messages[i];
         var sender = message['sender'];
@@ -16,20 +14,30 @@
         $('#chatbox').append(html);
       }
 
+      // Scroll to latest chat message
+      $('#chatbox').scrollTop($('#chatbox').prop('scrollHeight'));
+
+      // Connect to the WebSocket server
+      var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+      // Receive messages from the server
+      socket.on('message', function(data) {
+        console.log('Received message:', data);
+        chat_messages.push(data);
+        var sender = data['sender'];
+        var text = data['message'];
+        var html = '<p><strong>' + sender + ':</strong> ' + text + '</p>';
+        $('#chatbox').append(html);
+        // Scroll to latest chat message
+        $('#chatbox').scrollTop($('#chatbox').prop('scrollHeight'));
+      });
+
       function sendChat() {
-        console.log('sendChat() called'); // Add this line
+        console.log('sendChat() called');
         var message = $('#chatinput').val();
         if (message) {
-          $.post('/chat', {'message': message}, function() {
-            $('#chatinput').val('');
-            // Add new chat message to the array
-            chat_messages.push({'sender': '{{ session["player_name"] }}', 'message': message});
-            // Display new chat message
-            var sender = chat_messages.slice(-1)[0]['sender'];
-            var text = chat_messages.slice(-1)[0]['message'];
-            var html = '<p><strong>' + sender + ':</strong> ' + text + '</p>';
-            $('#chatbox').append(html);
-          });
+          socket.emit('message', {'sender': '{{ session["player_name"] }}', 'message': message});
+          $('#chatinput').val('');
         }
       }
     </script>
