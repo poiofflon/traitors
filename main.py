@@ -19,7 +19,7 @@ game_started = False
 admin = 'Offlon'
 enable_multi_browser_logon = False
 
-chat_messages = ['Feel free to type message']
+chat_messages = [{'sender': 'Admin', 'message': 'Welcome to The Traitors!'}]
 
 
 # @app.before_request
