@@ -119,7 +119,7 @@ def handle_message(data):
     sender = data["sender"]
     message = data["message"]
     chat_messages.append({"sender": sender, "message": message})
-    socketio.emit("message", {"sender": sender, "message": message}, broadcast=True)
+    socketio.emit("message", {"sender": sender, "message": message}, to=None)
 
 
 if __name__ == "__main__":
