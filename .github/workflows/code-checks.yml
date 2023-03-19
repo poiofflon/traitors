@@ -1,0 +1,33 @@
+name: Check Python code
+
+on:
+  push:
+    branches:
+      - 'main'
+      - 'feature/**'
+      - 'bugfix/**'
+
+jobs:
+  check_python:
+    name: Check Python
+    
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python 3.8
+      uses: actions/setup-python@v3
+      with:
+        python-version: 3.8
+
+    - name: Install dependencies
+      run: |
+        python3 -m pip install --upgrade pip setuptools
+        pip install -r requirements.txt
+    
+    - name: Run Python code checks
+      run: |
+        black .
+        isort .
+        flake8 .
