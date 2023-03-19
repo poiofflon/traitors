@@ -1,18 +1,14 @@
-# from gevent import monkey
-# monkey.patch_all()
-
 import random
 
 from flask import Flask, redirect, render_template, request, session
 from flask_socketio import SocketIO
 
-# import hashlib
 
 app = Flask(__name__)
 app.secret_key = "some_secret"
 app.static_folder = "static"
-
 socketio = SocketIO(app, async_mode="threading")
+
 
 players = []
 traitors = []
@@ -22,13 +18,6 @@ admin = "Offlon"
 enable_multi_browser_logon = False
 
 chat_messages = [{"sender": "Admin", "message": "Welcome to The Traitors!"}]
-
-
-# @app.before_request
-# def before_request():
-#     if enable_multi_browser_logon:
-#         session_key = 'session_' + hashlib.sha256(request.remote_addr.encode('utf-8')).hexdigest()
-#         app.config['SESSION_COOKIE_NAME'] = session_key
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -100,30 +89,6 @@ def game():
     return render_template("game.html", players=players, traitors=traitors, votes=votes, chat_messages=chat_messages)
 
 
-# @app.route('/game_over')
-# def game_over():
-#     global players, traitors, votes, game_started, admin
-#     players = []
-#     traitors = []
-#     votes = {}
-#     game_started = False
-#     admin = None
-#     session.clear()
-#     return redirect('/')
-
-
-# @app.teardown_appcontext
-# def clear_game_cookies(exception=None):
-#     if 'player_name' in session:
-#         session.pop('player_name')
-#     if 'game_started' in session:
-#         session.pop('game_started')
-#     if 'traitors' in session:
-#         session.pop('traitors')
-#     if 'votes' in session:
-#         session.pop('votes')
-
-
 @app.route("/results", methods=["GET"])
 def results():
     global traitors, votes, game_started
@@ -147,14 +112,6 @@ def results():
         else:
             return redirect("/game")
     return render_template("result.html", vote_count=vote_count, players=players)
-
-
-# @app.route('/chat', methods=['POST'])
-# def chat():
-#     sender = session['player_name']
-#     message = request.form['message']
-#     chat_messages.append({'sender': sender, 'message': message})
-#     return 'OK'
 
 
 @socketio.on("message")
