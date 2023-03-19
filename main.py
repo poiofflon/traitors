@@ -1,14 +1,16 @@
+#from gevent import monkey
+#monkey.patch_all()
+
 from flask import Flask, render_template, request, redirect, session
 from flask_socketio import SocketIO
 import random
 # import hashlib
 
-
 app = Flask(__name__)
 app.secret_key = 'some_secret'
 app.static_folder = 'static'
 
-socketio = SocketIO(app)
+socketio = SocketIO(app, async_mode='threading')
 
 players = []
 traitors = []
@@ -153,7 +155,7 @@ def handle_message(data):
     sender = data['sender']
     message = data['message']
     chat_messages.append({'sender': sender, 'message': message})
-    SocketIO.emit('message', {'sender': sender, 'message': message}, broadcast=True)
+    socketio.emit('message', {'sender': sender, 'message': message}, broadcast=True)
 
 
 if __name__ == '__main__':
