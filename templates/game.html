@@ -3,6 +3,23 @@
   <head>
 
     <style>
+
+      body {
+          display: flex;
+          justify-content: space-around;
+          align-items: flex-start;
+      }
+
+      #game-content {
+          flex: 1;
+          max-width: 50%;
+      }
+
+      #chat-container {
+          flex: 1;
+          max-width: 50%;
+      }
+
       #chatbox {
         height: 200px;
         overflow-y: scroll;
@@ -61,25 +78,30 @@
     </script>
   </head>
   <body>
-    <h1>Traitors Game</h1>
-    <h2>Players:</h2>
-    <form action="/results" method="post">
-      {% for player in players %}
-      <label>
-        <input type="checkbox" name="{{ player }}" value="{{ player }}">
-        {{ player }}{% if player in traitors %} (Traitor){% endif %}
-      </label>
-      <br>
-      {% endfor %}
-      <br>
-      <input type="submit" value="Submit">
-    </form>
 
-    <h2>Chat:</h2>
-    <div id="chatbox"></div>
-    <form onsubmit="sendChat(); return false;">
-      <input type="text" id="chatinput">
-      <input type="submit" value="Send">
-    </form>
+    <div id="game-content">
+      <h1>Traitors Game</h1>
+      <h2>Players:</h2>
+      <form action="/results" method="post">
+        {% for player in players %}
+        <label>
+          <input type="checkbox" name="{{ player }}" value="{{ player }}">
+          {{ player }}{% if player in traitors %} (Traitor){% endif %}
+        </label>
+        <br>
+        {% endfor %}
+        <br>
+        <input type="submit" value="Submit">
+      </form>
+    </div>
+
+    <div id="chat-containers">
+      <h2>Chat:</h2>
+      <div id="chatbox"></div>
+      <form onsubmit="sendChat(); return false;">
+        <input type="text" id="chatinput">
+        <input type="submit" value="Send">
+      </form>
+    </div>
   </body>
 </html>
