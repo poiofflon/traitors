@@ -1,25 +1,27 @@
-#from gevent import monkey
-#monkey.patch_all()
+# from gevent import monkey
+# monkey.patch_all()
 
-from flask import Flask, render_template, request, redirect, session
-from flask_socketio import SocketIO
 import random
+
+from flask import Flask, redirect, render_template, request, session
+from flask_socketio import SocketIO
+
 # import hashlib
 
 app = Flask(__name__)
-app.secret_key = 'some_secret'
-app.static_folder = 'static'
+app.secret_key = "some_secret"
+app.static_folder = "static"
 
-socketio = SocketIO(app, async_mode='threading')
+socketio = SocketIO(app, async_mode="threading")
 
 players = []
 traitors = []
 votes = {}
 game_started = False
-admin = 'Offlon'
+admin = "Offlon"
 enable_multi_browser_logon = False
 
-chat_messages = [{'sender': 'Admin', 'message': 'Welcome to The Traitors!'}]
+chat_messages = [{"sender": "Admin", "message": "Welcome to The Traitors!"}]
 
 
 # @app.before_request
@@ -29,43 +31,43 @@ chat_messages = [{'sender': 'Admin', 'message': 'Welcome to The Traitors!'}]
 #         app.config['SESSION_COOKIE_NAME'] = session_key
 
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route("/", methods=["GET", "POST"])
 def index():
-    if request.method == 'POST':
-        session['player_name'] = request.form['player_name']
-        players.append(session['player_name'])
-        return redirect('/wait')
-    elif session.get('player_name') and session['player_name'] in players:
-        return redirect('/wait')
+    if request.method == "POST":
+        session["player_name"] = request.form["player_name"]
+        players.append(session["player_name"])
+        return redirect("/wait")
+    elif session.get("player_name") and session["player_name"] in players:
+        return redirect("/wait")
     else:
         session.clear()
-        return render_template('index.html', player_count=len(players))
+        return render_template("index.html", player_count=len(players))
 
 
-@app.route('/join_game', methods=['GET', 'POST'])
+@app.route("/join_game", methods=["GET", "POST"])
 def join_game():
-    if request.method == 'POST':
-        session['player_name'] = request.form['player_name']
-        players.append(session['player_name'])
-        return redirect('/wait')
-    return render_template('join_game.html')
+    if request.method == "POST":
+        session["player_name"] = request.form["player_name"]
+        players.append(session["player_name"])
+        return redirect("/wait")
+    return render_template("join_game.html")
 
 
-@app.route('/wait', methods=['GET', 'POST'])
+@app.route("/wait", methods=["GET", "POST"])
 def wait():
     global admin
-    if session['player_name'] == admin:
+    if session["player_name"] == admin:
         can_start_game = True
     else:
         can_start_game = False
-    return render_template('wait.html', players=players, admin=admin, can_start_game=can_start_game)
+    return render_template("wait.html", players=players, admin=admin, can_start_game=can_start_game)
 
 
-@app.route('/start_game', methods=['POST'])
+@app.route("/start_game", methods=["POST"])
 def start_game():
     global game_started, admin
     game_started = True
-    admin = session['player_name']
+    admin = session["player_name"]
     traitor_count = len(players) // 3
     traitors.extend(random.sample(players, traitor_count))
     for player in players:
@@ -73,24 +75,29 @@ def start_game():
             votes[player] = []
         else:
             votes[player] = None
-    return redirect('/game')
+    return redirect("/game")
 
 
-@app.route('/game', methods=['GET', 'POST'])
+@app.route("/game", methods=["GET", "POST"])
 def game():
     global traitors, game_started, votes
     if not game_started:
-        return redirect('/wait')
-    if request.method == 'POST':
-        vote = request.form['vote']
-        voter = session['player_name']
+        return redirect("/wait")
+    if request.method == "POST":
+        vote = request.form["vote"]
+        voter = session["player_name"]
         if vote in votes[voter]:
-            return render_template('game.html', players=session['players'], traitors=traitors,
-                                   message='You have already voted for this player.', votes=votes,
-                                   chat_messages=chat_messages)
+            return render_template(
+                "game.html",
+                players=session["players"],
+                traitors=traitors,
+                message="You have already voted for this player.",
+                votes=votes,
+                chat_messages=chat_messages,
+            )
         votes[voter] = vote
-        return redirect('/results')
-    return render_template('game.html', players=players, traitors=traitors, votes=votes, chat_messages=chat_messages)
+        return redirect("/results")
+    return render_template("game.html", players=players, traitors=traitors, votes=votes, chat_messages=chat_messages)
 
 
 # @app.route('/game_over')
@@ -117,11 +124,11 @@ def game():
 #         session.pop('votes')
 
 
-@app.route('/results', methods=['GET'])
+@app.route("/results", methods=["GET"])
 def results():
     global traitors, votes, game_started
     if not game_started:
-        return redirect('/wait')
+        return redirect("/wait")
     vote_count = {}
     for voter, vote in votes.items():
         if voter in traitors:
@@ -136,10 +143,10 @@ def results():
         votes = {p: [] if p in traitors else None for p in players}
         if len(traitors) == 0:
             game_started = False
-            return render_template('game_over.html', message='The Faithfuls have won!')
+            return render_template("game_over.html", message="The Faithfuls have won!")
         else:
-            return redirect('/game')
-    return render_template('result.html', vote_count=vote_count, players=players)
+            return redirect("/game")
+    return render_template("result.html", vote_count=vote_count, players=players)
 
 
 # @app.route('/chat', methods=['POST'])
@@ -150,13 +157,13 @@ def results():
 #     return 'OK'
 
 
-@socketio.on('message')
+@socketio.on("message")
 def handle_message(data):
-    sender = data['sender']
-    message = data['message']
-    chat_messages.append({'sender': sender, 'message': message})
-    socketio.emit('message', {'sender': sender, 'message': message}, broadcast=True)
+    sender = data["sender"]
+    message = data["message"]
+    chat_messages.append({"sender": sender, "message": message})
+    socketio.emit("message", {"sender": sender, "message": message}, broadcast=True)
 
 
-if __name__ == '__main__':
-    socketio.run(app, host='127.0.0.1', port=8000)
+if __name__ == "__main__":
+    socketio.run(app, host="127.0.0.1", port=8000)

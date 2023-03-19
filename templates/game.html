@@ -2,81 +2,22 @@
 <html>
   <head>
 
-    <style>
-
-      body {
-          display: flex;
-          justify-content: space-around;
-          align-items: flex-start;
-      }
-
-      #game-content {
-          flex: 1;
-          max-width: 50%;
-      }
-
-      #chat-container {
-          flex: 1;
-          max-width: 50%;
-      }
-
-      #chatbox {
-        height: 200px;
-        overflow-y: scroll;
-        border: 1px solid #ccc;
-        padding: 10px;
-        margin-bottom: 10px;
-      }
-    </style>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
+    <!-- static file references -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/game.css') }}">
+    <script src="{{ url_for('static', filename='js/game.js') }}"></script>
+
     <title>Traitors Game</title>
     <script>
-
-      var socket;
-
-      function sendChat() {
-        console.log('sendChat() called');
-        var message = $('#chatinput').val();
-        if (message) {
-          socket.emit('message', {'sender': '{{ session["player_name"] }}', 'message': message});
-          $('#chatinput').val('');
-        }
-      }
-
-      $(document).ready(function() {
-        // Display chat messages
-        var chat_messages = {{ chat_messages|tojson|safe }};
-        for (var i = 0; i < chat_messages.length; i++) {
-          var message = chat_messages[i];
-          var sender = message['sender'];
-          var text = message['message'];
-          var html = '<p><strong>' + sender + ':</strong> ' + text + '</p>';
-          $('#chatbox').append(html);
-        }
-
-        // Scroll to latest chat message
-        $('#chatbox').scrollTop($('#chatbox').prop('scrollHeight'));
-
-        // Connect to the WebSocket server
-        socket = io.connect('http://' + document.domain + ':' + location.port);
-
-        // Receive messages from the server
-        socket.on('message', function(data) {
-          console.log('Received message:', data);
-          chat_messages.push(data);
-          var sender = data['sender'];
-          var text = data['message'];
-          var html = '<p><strong>' + sender + ':</strong> ' + text + '</p>';
-          $('#chatbox').append(html);
-          // Scroll to latest chat message
-          $('#chatbox').scrollTop($('#chatbox').prop('scrollHeight'));
-        });
-      });
+      var config = {
+        playerName: "{{ session['player_name'] }}",
+        chatMessages: {{ chat_messages|tojson|safe }}
+      };
     </script>
   </head>
+
   <body>
 
     <div id="game-content">

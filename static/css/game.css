@@ -1,0 +1,23 @@
+body {
+  display: flex;
+  justify-content: space-around;
+  align-items: flex-start;
+}
+
+#game-content {
+  flex: 1;
+  max-width: 50%;
+}
+
+#chat-container {
+  flex: 1;
+  max-width: 50%;
+}
+
+#chatbox {
+  height: 500px;
+  overflow-y: scroll;
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-bottom: 10px;
+}
