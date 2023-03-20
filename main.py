@@ -142,27 +142,21 @@ def round_result():
 
 @app.route("/results", methods=["GET", "POST"])
 def results():
-    global traitors, votes, game_started
+    global traitors, votes, game_started, players
     if not game_started:
         return redirect("/wait")
-    vote_count = {}
-    for voter, vote in votes.items():
-        if voter in traitors:
-            continue
-        if vote_count.get(vote):
-            vote_count[vote] += 1
-        else:
-            vote_count[vote] = 1
-    if len(vote_count) == 1:
-        winner = list(vote_count.keys())[0]
-        traitors = [t for t in traitors if t != winner]
-        votes = {p: [] if p in traitors else None for p in players}
-        if len(traitors) == 0:
-            game_started = False
-            return render_template("game_over.html", message="The Faithfuls have won!")
-        else:
-            return redirect("/game")
-    return render_template("result.html", vote_count=vote_count, players=players)
+
+    if request.method == "POST":
+        votes.clear()
+        game_started = False
+        players.clear()
+        traitors.clear()
+        return redirect("/")
+
+    if any([t in players for t in traitors]):
+        return render_template("game_over.html", message="The Traitors have won!")
+
+    return render_template("game_over.html", message="The Faithful have won!")
 
 
 @app.route("/you_lost", methods=["GET"])
