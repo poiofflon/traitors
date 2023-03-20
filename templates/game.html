@@ -22,12 +22,13 @@
 
     <div id="game-content">
       <h1>Traitors Game</h1>
+      <p>{{ message }}</p>
       <h2>Players:</h2>
       <form action="/results" method="post">
-        {% for player in players %}
+        {% for option in voting_options %}
         <label>
-          <input type="checkbox" name="{{ player }}" value="{{ player }}">
-          {{ player }}{% if player in traitors %} (Traitor){% endif %}
+          <input type="radio" name="vote" value="{{ option }}">
+          {{ option }}{% if option in traitors %} (Traitor){% endif %}
         </label>
         <br>
         {% endfor %}
