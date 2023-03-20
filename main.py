@@ -63,11 +63,6 @@ def start_game():
     admin = session["player_name"]
     traitor_count = len(players) // 3
     traitors.extend(random.sample(players, traitor_count))
-    for player in players:
-        if player in traitors:
-            votes[player] = []
-        else:
-            votes[player] = None
     return redirect("/game")
 
 
