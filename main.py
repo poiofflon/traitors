@@ -120,6 +120,11 @@ def results():
     return render_template("result.html", vote_count=vote_count, players=players)
 
 
+@app.route("/you_lost", methods=["GET"])
+def you_lost():
+    return "You lost, sorry :-("
+
+
 @socketio.on("message")
 def handle_message(data):
     sender = data["sender"]
