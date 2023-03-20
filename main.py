@@ -145,5 +145,10 @@ def results():
     return render_template("result.html", vote_count=vote_count, players=players)
 
 
+@app.route("/you_lost", methods=["GET"])
+def you_lost():
+    return "You lost, sorry :-("
+
+
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=8000, debug=True)
