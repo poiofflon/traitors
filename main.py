@@ -124,18 +124,19 @@ def game():
 #     if 'votes' in session:
 #         session.pop('votes')
 
+
+def max_votes(vote_list):
+    vote_set = set(vote_list)
+    max_count = max([vote_list.count(v) for v in vote_set])
+    return [v for v in vote_set if vote_list.count(v) == max_count]
+
+
 @app.route("/round_result", methods=["GET"])
 def round_result():
     global traitor_result, votes
 
     all_player_votes = list(votes.values())
     traitor_votes = [vote for voter, vote in votes.items() if voter in traitors]
-
-    def max_votes(vote_list):
-        s = set(vote_list)
-        l = vote_list
-        max_count = max([l.count(v) for v in s])
-        return [v for v in s if l.count(v) == max_count]
 
     # resolve tied results
     all_player_result = max_votes(all_player_votes)
