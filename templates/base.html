@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}{% endblock %}</title>
-    {% block head %}{% endblock %}
+    <title>{% block tab %}{% endblock %}</title>
+    <h1>{% block head %}{% endblock %}</h1>
+    {% if message %}
+        <p>{{ message }}</p>
+    {% endif %}
 </head>
 <body>
-    {% if message %}
-    <p>{{ message }}</p>
-    {% endif %}
     {% block content %}{% endblock %}
 </body>
 </html>
