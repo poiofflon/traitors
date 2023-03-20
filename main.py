@@ -74,22 +74,22 @@ def start_game():
 @app.route("/game", methods=["GET", "POST"])
 def game():
     global traitors, game_started, votes
+    message = ""
     if not game_started:
         return redirect("/wait")
     if request.method == "POST":
-        vote = request.form["vote"]
         voter = session["player_name"]
-        if vote in votes[voter]:
-            return render_template(
-                "game.html",
-                players=session["players"],
-                traitors=traitors,
-                message="You have already voted for this player.",
-                votes=votes,
-            )
-        votes[voter] = vote
-        return redirect("/results")
-    return render_template("game.html", players=players, traitors=traitors, votes=votes)
+        if voter in votes:
+            message = "You have already voted"
+        else:
+            vote = request.form["vote"]
+            votes[voter] = vote
+            message = f"You voted for {vote}"
+    if len(votes) == len(players):
+        return redirect("/round_result")
+
+    return render_template("game.html", voting_options=players + [end_game_option_label], traitors=traitors,
+                           message=message, votes=votes)
 
 
 # @app.route('/game_over')
