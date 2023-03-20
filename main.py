@@ -55,11 +55,14 @@ def join_game():
 @app.route("/wait", methods=["GET", "POST"])
 def wait():
     global admin
+    message = None
     if session["player_name"] == admin:
         can_start_game = True
+        if len(players) < min_no_players:
+            message = "Recommend waiting until the minimum number of players have joined"
     else:
         can_start_game = False
-    return render_template("wait.html", players=players, admin=admin, can_start_game=can_start_game)
+    return render_template("wait.html", players=players, admin=admin, can_start_game=can_start_game, message=message)
 
 
 @app.route("/start_game", methods=["POST"])
