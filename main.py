@@ -16,7 +16,7 @@ game_started = False
 admin = "Offlon"
 enable_multi_browser_logon = False
 min_no_players = 3
-end_game_option_label = 'End game'
+end_game_option_label = "End game"
 
 # global
 traitor_result = None
@@ -45,7 +45,7 @@ def index():
         players.append(session["player_name"])
         return redirect("/wait")
 
-    return render_template("index.html", player_count=len(players), message='Logon to play')
+    return render_template("index.html", player_count=len(players), message="Logon to play")
 
 
 @app.route("/join_game", methods=["GET", "POST"])
@@ -97,8 +97,9 @@ def game():
     if len(votes) == len(players):
         return redirect("/round_result")
 
-    return render_template("game.html", voting_options=players + [end_game_option_label], traitors=traitors,
-                           message=message, votes=votes)
+    return render_template(
+        "game.html", voting_options=players + [end_game_option_label], traitors=traitors, message=message, votes=votes
+    )
 
 
 # @app.route('/game_over')
@@ -143,7 +144,7 @@ def round_result():
 
     # end the game when a majority of players vote to end
     if end_game_option_label in all_player_result:
-        return redirect('/results')
+        return redirect("/results")
 
     # resolve tied result
     all_player_result = random.sample(max_votes(all_player_votes), 1)[0]
@@ -151,7 +152,7 @@ def round_result():
     player_result_is_traitor = all_player_result in traitors
 
     if all_player_result == session["player_name"]:
-        return redirect('/you_lost')
+        return redirect("/you_lost")
 
     # push update to notify player that they are out the game
     # push notification to chat to confirm outcome of public vote
@@ -165,8 +166,9 @@ def round_result():
 
     votes.clear()
 
-    return render_template("game.html", voting_options=players + [end_game_option_label], traitors=traitors,
-                           message=message, votes=votes)
+    return render_template(
+        "game.html", voting_options=players + [end_game_option_label], traitors=traitors, message=message, votes=votes
+    )
 
 
 @app.route("/results", methods=["GET", "POST"])
