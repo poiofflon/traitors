@@ -26,15 +26,21 @@ enable_multi_browser_logon = False
 
 @app.route("/", methods=["GET", "POST"])
 def index():
+    if session.get("player_name"):
+        if session["player_name"] not in players:
+            players.append(session["player_name"])
+        return redirect("/wait")
+
     if request.method == "POST":
+        requested_player_name = request.form["player_name"]
+        if requested_player_name in players:
+            message = f"Requested player name '{requested_player_name}' is taken. Please choose another name."
+            return render_template("index.html", player_count=len(players), message=message)
         session["player_name"] = request.form["player_name"]
         players.append(session["player_name"])
         return redirect("/wait")
-    elif session.get("player_name") and session["player_name"] in players:
-        return redirect("/wait")
-    else:
-        session.clear()
-        return render_template("index.html", player_count=len(players))
+
+    return render_template("index.html", player_count=len(players), message='Logon to play')
 
 
 @app.route("/join_game", methods=["GET", "POST"])
