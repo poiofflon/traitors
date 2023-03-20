@@ -17,7 +17,9 @@ game_started = False
 admin = "Offlon"
 enable_multi_browser_logon = False
 min_no_players = 3
-end_game_option_label = "End game"
+end_game_option_label = 'End game'
+
+# global
 traitor_result = None
 
 chat_messages = [{"sender": "Admin", "message": "Welcome to The Traitors!"}]
