@@ -124,8 +124,51 @@ def game():
 #     if 'votes' in session:
 #         session.pop('votes')
 
+@app.route("/round_result", methods=["GET"])
+def round_result():
+    global traitor_result, votes
 
-@app.route("/results", methods=["GET"])
+    all_player_votes = list(votes.values())
+    traitor_votes = [vote for voter, vote in votes.items() if voter in traitors]
+
+    def max_votes(vote_list):
+        s = set(vote_list)
+        l = vote_list
+        max_count = max([l.count(v) for v in s])
+        return [v for v in s if l.count(v) == max_count]
+
+    # resolve tied results
+    all_player_result = max_votes(all_player_votes)
+
+    # end the game when a majority of players vote to end
+    if end_game_option_label in all_player_result:
+        return redirect('/results')
+
+    # resolve tied result
+    all_player_result = random.sample(max_votes(all_player_votes), 1)[0]
+    players.remove(all_player_result)
+    player_result_is_traitor = all_player_result in traitors
+
+    if all_player_result == session["player_name"]:
+        return redirect('/you_lost')
+
+    # push update to notify player that they are out the game
+    # push notification to chat to confirm outcome of public vote
+
+    traitor_result = random.sample(max_votes(traitor_votes), 1)
+
+    if player_result_is_traitor:
+        message = f"Congratulations Faithfuls, you have eliminated player '{all_player_result}' who was a Traitor"
+    else:
+        message = f"Faithfuls, you voted off player '{all_player_result}' who was a Faithful"
+
+    votes.clear()
+
+    return render_template("game.html", voting_options=players + [end_game_option_label], traitors=traitors,
+                           message=message, votes=votes)
+
+
+@app.route("/results", methods=["GET", "POST"])
 def results():
     global traitors, votes, game_started
     if not game_started:
