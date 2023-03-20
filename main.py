@@ -15,6 +15,11 @@ votes = {}
 game_started = False
 admin = "Offlon"
 enable_multi_browser_logon = False
+min_no_players = 3
+end_game_option_label = 'End game'
+
+# global
+traitor_result = None
 
 
 # @app.before_request
