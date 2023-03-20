@@ -24,7 +24,7 @@
       <h1>Traitors Game</h1>
       <p>{{ message }}</p>
       <h2>Players:</h2>
-      <form action="/results" method="post">
+      <form action="/game" method="post">
         {% for option in voting_options %}
         <label>
           <input type="radio" name="vote" value="{{ option }}">
