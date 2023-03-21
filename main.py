@@ -44,17 +44,9 @@ def index():
     return render_template("index.html", player_count=len(players), message="Logon to play")
 
 
-@app.route("/join_game", methods=["GET", "POST"])
-def join_game():
-    if request.method == "POST":
-        session["player_name"] = request.form["player_name"]
-        players.append(session["player_name"])
-        return redirect("/wait")
-    return render_template("join_game.html")
-
-
 @app.route("/wait", methods=["GET", "POST"])
 def wait():
+    """ Wait page until game starts """
     global admin
     message = None
     if session["player_name"] == admin:
@@ -70,7 +62,6 @@ def wait():
 def start_game():
     global game_started, admin
     game_started = True
-    admin = session["player_name"]
     traitor_count = len(players) // 3
     traitors.extend(random.sample(players, traitor_count))
     return redirect("/game")
