@@ -3,12 +3,10 @@ import random
 from flask import Flask, redirect, render_template, request, session
 from flask_socketio import SocketIO
 
-
 app = Flask(__name__)
 app.secret_key = "some_secret"
 app.static_folder = "static"
 socketio = SocketIO(app, async_mode="threading")
-
 
 players = []
 traitors = []
@@ -46,7 +44,7 @@ def index():
 
 @app.route("/wait", methods=["GET", "POST"])
 def wait():
-    """ Wait page until game starts """
+    """Wait page until game starts"""
     global admin
     message = None
     if session["player_name"] == admin:
@@ -84,8 +82,14 @@ def game():
     if len(votes) == len(players):
         return redirect("/round_result")
 
-    return render_template("game.html", voting_options=players + [end_game_option_label], traitors=traitors,
-                           message=message, votes=votes, chat_messages=chat_messages)
+    return render_template(
+        "game.html",
+        voting_options=players + [end_game_option_label],
+        traitors=traitors,
+        message=message,
+        votes=votes,
+        chat_messages=chat_messages,
+    )
 
 
 def max_votes(vote_list):
@@ -159,7 +163,7 @@ def you_lost():
 
 @socketio.on("message")
 def handle_message(data):
-    """ receive messages data from client, store server side, push to all clients """
+    """receive messages data from client, store server side, push to all clients"""
     chat_messages.append(data)
     socketio.emit("message", data)
 
