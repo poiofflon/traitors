@@ -168,14 +168,7 @@ def you_lost():
 
 @socketio.on("message")
 def handle_message(data):
-    sender = data["sender"]
-    message = data["message"]
-    chat_messages.append({"sender": sender, "message": message})
-    socketio.emit("message", {"sender": sender, "message": message}, to=None)
-
-
-@socketio.on("vote")
-def handle_vote(data):
+    """ receive messages data from client, store server side, push to all clients """
     chat_messages.append(data)
     socketio.emit("message", data)
 

@@ -1,13 +1,5 @@
 var socket;
 
-function sendChat() {
-    console.log('sendChat() called');
-    var message = $('#chatinput').val();
-    if (message) {
-      socket.emit('message', {'sender': config.playerName, 'message': message});
-      $('#chatinput').val('');
-    }
-}
 
 $(document).ready(function() {
     // Display chat messages
@@ -40,16 +32,29 @@ $(document).ready(function() {
 });
 
 
-function sendVote() {
+function sendChat() {
+    console.log('sendChat() called');
+    var message = $('#chatinput').val();
+    if (message) {
+      socket.emit('message', {'sender': config.playerName, 'message': message});
+      // clear chat input
+      $('#chatinput').val('');
+    }
+}
+
+
+function sendVoteMessage() {
     console.log('sendVote() called');
     var vote = $('input[name="vote"]:checked').val();
     var message = config.playerName + " voted for " + vote;
-    // chat_messages.push({'sender': 'Admin', 'message': message})
-    socket.emit('vote', {'sender': 'Admin', 'message': message}, function() {
-        // Submit the form after the message is sent
+
+    // Send the vote to the server
+    socket.emit('message', {'sender': 'Admin', 'message': message}, function() {
+        // Submit the form programmatically after the message is sent to the server
         $('#vote-form').submit();
     });
 
+    // Return false to prevent the default form submission behavior while the message is being sent
     return false;
 }
 

@@ -26,7 +26,7 @@
       <p>{{ message }}</p>
       <h2>Players:</h2>
       <!-- removed these from form tag action="/game" method="post" -->
-      <form id="vote-form" action="/game" method="post" onsubmit="sendVote(); return False">
+      <form id="vote-form" action="/game" method="post" onsubmit="sendVoteMessage(); return False">
         {% for option in voting_options %}
         <label>
           <input type="radio" name="vote" value="{{ option }}">
