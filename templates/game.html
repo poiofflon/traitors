@@ -10,6 +10,8 @@
     <script src="{{ url_for('static', filename='js/game.js') }}"></script>
 
     <title>Traitors Game</title>
+
+    <!-- Store variables for JavaScript -->
     <script>
       var config = {
         playerName: "{{ session['player_name'] }}",
@@ -25,7 +27,6 @@
       <h1>Traitors Game</h1>
       <p>{{ message }}</p>
       <h2>Players:</h2>
-      <!-- removed these from form tag action="/game" method="post" -->
       <form id="vote-form" action="/game" method="post" onsubmit="sendVoteMessage(); return False">
         {% for option in voting_options %}
         <label>
