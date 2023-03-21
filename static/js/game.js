@@ -38,3 +38,18 @@ $(document).ready(function() {
       $('#chatbox').scrollTop($('#chatbox').prop('scrollHeight'));
     });
 });
+
+
+function sendVote() {
+    console.log('sendVote() called');
+    var vote = $('input[name="vote"]:checked').val();
+    var message = config.playerName + " voted for " + vote;
+    // chat_messages.push({'sender': 'Admin', 'message': message})
+    socket.emit('vote', {'sender': 'Admin', 'message': message}, function() {
+        // Submit the form after the message is sent
+        $('#vote-form').submit();
+    });
+
+    return false;
+}
+

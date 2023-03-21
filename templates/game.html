@@ -13,7 +13,8 @@
     <script>
       var config = {
         playerName: "{{ session['player_name'] }}",
-        chatMessages: {{ chat_messages|tojson|safe }}
+        chatMessages: {{ chat_messages|tojson|safe }},
+        votes: {{ votes|tojson|safe }}
       };
     </script>
   </head>
@@ -24,7 +25,8 @@
       <h1>Traitors Game</h1>
       <p>{{ message }}</p>
       <h2>Players:</h2>
-      <form action="/game" method="post">
+      <!-- removed these from form tag action="/game" method="post" -->
+      <form id="vote-form" action="/game" method="post" onsubmit="sendVote(); return False">
         {% for option in voting_options %}
         <label>
           <input type="radio" name="vote" value="{{ option }}">
