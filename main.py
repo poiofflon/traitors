@@ -65,6 +65,7 @@ def start_game():
     game_started = True
     traitor_count = len(players) // 3
     traitors.extend(random.sample(players, traitor_count))
+    socketio.emit("start-game")
     return redirect("/game")
 
 
