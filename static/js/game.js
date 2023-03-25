@@ -29,6 +29,14 @@ $(document).ready(function() {
       // Scroll to latest chat message
       $('#chatbox').scrollTop($('#chatbox').prop('scrollHeight'));
     });
+
+     // Next round
+    socket.on('next-round', function() {
+      console.log('next-round triggered');
+      window.location.href = "/game";
+    });
+
+
 });
 
 
