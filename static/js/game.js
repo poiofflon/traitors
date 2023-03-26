@@ -62,7 +62,7 @@ function sendVoteMessage() {
     var message = config.playerName + " voted for " + vote;
 
     // Send the vote to the server
-    socket.emit('message', {'sender': 'Admin', 'message': message}, function() {
+    socket.emit('message', {'sender': config.autoSendName, 'message': message}, function() {
         // Submit the form programmatically after the message is sent to the server
         $('#vote-form').submit();
     });

@@ -9,7 +9,8 @@
     var config = {
       playerName: "{{ session['player_name'] }}",
       chatMessages: {{ chat_messages|tojson|safe }},
-      votes: {{ votes|tojson|safe }}
+      votes: {{ votes|tojson|safe }},
+      autoSendName: "{{ auto_send_name }}"
     };
   </script>
 {% endblock %}

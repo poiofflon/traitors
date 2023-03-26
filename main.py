@@ -119,7 +119,8 @@ def game():
         traitors=player_traitor_list,
         message=message,
         votes=votes,
-        chat_messages=chat_messages
+        chat_messages=chat_messages,
+        auto_send_name=auto_send_name
     )
 
 
