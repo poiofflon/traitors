@@ -17,11 +17,12 @@ admin = "Offlon"
 enable_multi_browser_logon = False
 min_no_players = 3
 end_game_option_label = "End game"
+auto_send_name = "info"
 
 # global
 traitor_result = None
 
-chat_messages = [{"sender": "Admin", "message": "Welcome to The Traitors!"}]
+chat_messages = [{"sender": auto_send_name, "message": "Welcome to The Traitors!"}]
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -77,15 +78,21 @@ def game():
         return redirect("/wait")
     if not session.get("player_name"):
         return redirect("/")
-    voter = session["player_name"]
+    player = session["player_name"]
+
+    if request.method == "GET":
+        if player in traitors:
+            message = "Traitor, all you need to do to win is work with your fellow Traitors to survive the eliminations"
+        else:
+            message = "Faithful, you need to work with your fellow Faithfuls to vote off the Traitors to win"
 
     if request.method == "POST":
-        # voter = session["player_name"]
-        if voter in votes:
+        # player = session["player_name"]
+        if player in votes:
             message = "You have already voted"
         else:
             vote = request.form["vote"]
-            votes[voter] = vote
+            votes[player] = vote
             message = f"You voted for {vote}"
             if len(votes) == len(players):
                 all_player_result, player_is_traitor, message = round_result()
@@ -96,19 +103,23 @@ def game():
                     players.remove(all_player_result)
                     vote_off.append(all_player_result)
                     votes.clear()
-                    handle_message({'sender': 'Admin', 'message': message})
+                    handle_message({'sender': auto_send_name, 'message': message})
                     socketio.emit("next-round")
 
-    if voter in vote_off:
+    if player in vote_off:
         return redirect("/you-lost")
+
+    player_voting_option = players.copy() + [end_game_option_label]
+    player_voting_option.remove(player)
+    player_traitor_list = traitors if player in traitors else []
 
     return render_template(
         "game.html",
-        voting_options=players + [end_game_option_label],
-        traitors=traitors,
+        voting_options=player_voting_option,
+        traitors=player_traitor_list,
         message=message,
         votes=votes,
-        chat_messages=chat_messages,
+        chat_messages=chat_messages
     )
 
 
