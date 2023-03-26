@@ -151,11 +151,13 @@ def round_result():
 @app.route("/results", methods=["GET", "POST"])
 def results():
     global traitors, votes, game_started, players
+
     if not game_started:
         return redirect("/wait")
 
     if request.method == "POST":
         votes.clear()
+        vote_off.clear()
         game_started = False
         players.clear()
         traitors.clear()
