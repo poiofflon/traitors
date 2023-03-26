@@ -79,7 +79,7 @@ def game():
         return redirect("/")
     voter = session["player_name"]
     if voter in vote_off:
-        return redirect('you-lost')
+        return redirect("/you-lost")
     if request.method == "POST":
         # voter = session["player_name"]
         if voter in votes:
@@ -90,10 +90,15 @@ def game():
             message = f"You voted for {vote}"
             if len(votes) == len(players):
                 all_player_result, player_is_traitor, message = round_result()
-                vote_off.append(all_player_result)
-                votes.clear()
-                handle_message({'sender': 'Admin', 'message': message})
-                socketio.emit("next-round")
+                if all_player_result == end_game_option_label:
+                    socketio.emit("end-game")
+                    return redirect("/results")
+                else:
+                    players.remove(all_player_result)
+                    vote_off.append(all_player_result)
+                    votes.clear()
+                    handle_message({'sender': 'Admin', 'message': message})
+                    socketio.emit("next-round")
 
     return render_template(
         "game.html",
@@ -127,7 +132,7 @@ def round_result():
 
     # end the game when a majority of players vote to end
     if end_game_option_label in all_player_result:
-        return redirect("/results")
+        return end_game_option_label, None, "Players voted to end the game"
 
     # resolve tied result
     all_player_result = random.sample(max_votes(all_player_votes), 1)[0]

@@ -36,6 +36,11 @@ $(document).ready(function() {
       window.location.href = "/game";
     });
 
+     // End game
+    socket.on('end-game', function() {
+      console.log('game ended');
+      window.location.href = "/results";
+    });
 
 });
 
