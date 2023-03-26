@@ -1,7 +1,15 @@
 body {
   display: flex;
+  flex-direction: column;
+  justify-content: flex-start
+  align-items: center;
+}
+
+#main {
+  display: flex;
   justify-content: space-around;
   align-items: flex-start;
+  width: 100%;
 }
 
 #game-content {

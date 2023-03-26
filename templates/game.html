@@ -1,52 +1,46 @@
-<!DOCTYPE html>
-<html>
-  <head>
+{% extends 'base.html' %}
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+{% block static %}
+  <!-- static file references -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/game.css') }}">
+  <script src="{{ url_for('static', filename='js/game.js') }}"></script>
+  <!-- Store variables for JavaScript -->
+  <script>
+    var config = {
+      playerName: "{{ session['player_name'] }}",
+      chatMessages: {{ chat_messages|tojson|safe }},
+      votes: {{ votes|tojson|safe }}
+    };
+  </script>
+{% endblock %}
 
-    <!-- static file references -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/game.css') }}">
-    <script src="{{ url_for('static', filename='js/game.js') }}"></script>
+{% block h1 %}Round{% endblock %}
 
-    <title>Traitors Game</title>
+{% block content %}
 
-    <!-- Store variables for JavaScript -->
-    <script>
-      var config = {
-        playerName: "{{ session['player_name'] }}",
-        chatMessages: {{ chat_messages|tojson|safe }},
-        votes: {{ votes|tojson|safe }}
-      };
-    </script>
-  </head>
+  <div id="game-content">
 
-  <body>
+    <h2>Players:</h2>
+    <form id="vote-form" action="/game" method="post" onsubmit="sendVoteMessage(); return False">
+      {% for option in voting_options %}
+      <label>
+        <input type="radio" name="vote" value="{{ option }}">
+        {{ option }}{% if option in traitors %} (Traitor){% endif %}
+      </label>
+      <br>
+      {% endfor %}
+      <br>
+      <input type="submit" value="Submit">
+    </form>
+  </div>
 
-    <div id="game-content">
-      <h1>Traitors Game</h1>
-      <p>{{ message }}</p>
-      <h2>Players:</h2>
-      <form id="vote-form" action="/game" method="post" onsubmit="sendVoteMessage(); return False">
-        {% for option in voting_options %}
-        <label>
-          <input type="radio" name="vote" value="{{ option }}">
-          {{ option }}{% if option in traitors %} (Traitor){% endif %}
-        </label>
-        <br>
-        {% endfor %}
-        <br>
-        <input type="submit" value="Submit">
-      </form>
-    </div>
+  <div id="chat-containers">
+    <h2>Chat:</h2>
+    <div id="chatbox"></div>
+    <form onsubmit="sendChat(); return false;">
+      <input type="text" id="chatinput">
+      <input type="submit" value="Send">
+    </form>
+  </div>
 
-    <div id="chat-containers">
-      <h2>Chat:</h2>
-      <div id="chatbox"></div>
-      <form onsubmit="sendChat(); return false;">
-        <input type="text" id="chatinput">
-        <input type="submit" value="Send">
-      </form>
-    </div>
-  </body>
-</html>
+{% endblock %}

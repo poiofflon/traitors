@@ -10,13 +10,19 @@
     <meta charset="UTF-8">
     <!-- Label for the browser tab or window -->
     <title>Traitors Game</title>
+
+</head>
+<body>
+
     <h1>{% block h1 %}{% endblock %}</h1>
     {% if message %}
         <p>{{ message }}</p>
     {% endif %}
-</head>
-<body>
-    {% block content %}{% endblock %}
+
+    <div id="main">
+        {% block content %}{% endblock %}
+    </div>
+
 </body>
 </html>
 
