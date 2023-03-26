@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 
-{% block title %}Game Over{% endblock %}
+{% block h1 %}Game Over{% endblock %}
 
 {% block content %}
-  The Game is over
+  <p>The Game is over</p>
   <form action="/results" method="post">
     <label>
       <input type="submit" value="Play again">
