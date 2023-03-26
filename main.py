@@ -127,7 +127,7 @@ def round_result():
     global traitor_result, votes
 
     all_player_votes = list(votes.values())
-    traitor_votes = [vote for voter, vote in votes.items() if voter in traitors]
+    # traitor_votes = [vote for voter, vote in votes.items() if voter in traitors]
 
     # resolve tied results
     all_player_result = max_votes(all_player_votes)
@@ -137,10 +137,14 @@ def round_result():
         return end_game_option_label, None, "Players voted to end the game"
 
     # resolve tied result
-    all_player_result = random.sample(max_votes(all_player_votes), 1)[0]
+    if len(all_player_result) > 1:
+        all_player_result = random.sample(all_player_result, 1)[0]
+    else:
+        all_player_result = all_player_result[0]
+
     player_result_is_traitor = all_player_result in traitors
 
-    traitor_result = random.sample(max_votes(traitor_votes), 1)
+    # traitor_result = random.sample(max_votes(traitor_votes), 1)
 
     if player_result_is_traitor:
         message = f"Congratulations Faithfuls, you have eliminated player '{all_player_result}' who was a Traitor"
