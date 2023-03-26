@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block h1 %}You've been voted out!{% endblock %}
+
+{% block content %}
+    <p>Sorry about that :-(</p>
+
+    <form action="/results" method="post">
+        <label>
+            <input type="submit" value="Play again">
+        </label>
+    </form>
+
+{% endblock %}

@@ -78,8 +78,7 @@ def game():
     if not session.get("player_name"):
         return redirect("/")
     voter = session["player_name"]
-    if voter in vote_off:
-        return redirect("/you-lost")
+
     if request.method == "POST":
         # voter = session["player_name"]
         if voter in votes:
@@ -174,7 +173,10 @@ def results():
 
 @app.route("/you-lost", methods=["GET"])
 def you_lost():
-    return "You lost, sorry :-("
+    if not game_started:
+        return redirect("/wait")
+
+    return render_template("you_lost.html")
 
 
 @socketio.on("message")
