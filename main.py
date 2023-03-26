@@ -100,6 +100,9 @@ def game():
                     handle_message({'sender': 'Admin', 'message': message})
                     socketio.emit("next-round")
 
+    if voter in vote_off:
+        return redirect("/you-lost")
+
     return render_template(
         "game.html",
         voting_options=players + [end_game_option_label],
