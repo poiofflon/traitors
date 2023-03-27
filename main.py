@@ -72,12 +72,13 @@ def start_game():
 
 @app.route("/game", methods=["GET", "POST"])
 def game():
-    global traitors, game_started, votes, vote_off
+    global traitors, game_started, votes, vote_off, players
     message = ""
     if not game_started:
         return redirect("/wait")
     if not session.get("player_name"):
         return redirect("/")
+
     player = session["player_name"]
 
     if request.method == "GET":
@@ -95,16 +96,24 @@ def game():
             votes[player] = vote
             message = f"You voted for {vote}"
             if len(votes) == len(players):
-                all_player_result, player_is_traitor, message = round_result()
+
+                all_player_result = round_result(list(votes))
+
                 if all_player_result == end_game_option_label:
                     socketio.emit("end-game")
                     return redirect("/results")
+
+                if all_player_result in traitors:
+                    message = f"Congratulations Faithfuls, you have eliminated player '{all_player_result}' " \
+                              f"who was a Traitor"
                 else:
-                    players.remove(all_player_result)
-                    vote_off.append(all_player_result)
-                    votes.clear()
-                    handle_message({'sender': auto_send_name, 'message': message})
-                    socketio.emit("next-round")
+                    message = f"Faithfuls, you voted off player '{all_player_result}' who was a Faithful"
+
+                players.remove(all_player_result)
+                vote_off.append(all_player_result)
+                votes.clear()
+                handle_message({'sender': auto_send_name, 'message': message})
+                socketio.emit("next-round")
 
     if player in vote_off:
         return redirect("/you-lost")
@@ -135,35 +144,22 @@ def max_votes(vote_list):
     return [v for v in vote_set if vote_list.count(v) == max_count]
 
 
-def round_result():
-    global traitor_result, votes
+def round_result(vote_list):
 
-    all_player_votes = list(votes.values())
-    # traitor_votes = [vote for voter, vote in votes.items() if voter in traitors]
-
-    # resolve tied results
-    all_player_result = max_votes(all_player_votes)
-
-    # end the game when a majority of players vote to end
-    if end_game_option_label in all_player_result:
-        return end_game_option_label, None, "Players voted to end the game"
+    # who got the most votes
+    max_vote_list = max_votes(vote_list)
 
     # resolve tied result
-    if len(all_player_result) > 1:
-        all_player_result = random.sample(all_player_result, 1)[0]
+    if len(max_vote_list) > 1:
+        if end_game_option_label in max_vote_list:
+            result = end_game_option_label
+        else:
+            # pick at random
+            result = random.sample(max_vote_list, 1)[0]
     else:
-        all_player_result = all_player_result[0]
+        result = max_vote_list[0]
 
-    player_result_is_traitor = all_player_result in traitors
-
-    # traitor_result = random.sample(max_votes(traitor_votes), 1)
-
-    if player_result_is_traitor:
-        message = f"Congratulations Faithfuls, you have eliminated player '{all_player_result}' who was a Traitor"
-    else:
-        message = f"Faithfuls, you voted off player '{all_player_result}' who was a Faithful"
-
-    return all_player_result, player_result_is_traitor, message
+    return result
 
 
 @app.route("/results", methods=["GET", "POST"])
