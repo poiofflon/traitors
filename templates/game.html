@@ -1,21 +1,47 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Traitors Game</title>
-  </head>
-  <body>
-    <h1>Traitors Game</h1>
+{% extends 'base.html' %}
+
+{% block static %}
+  <!-- static file references -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/game.css') }}">
+  <script src="{{ url_for('static', filename='js/game.js') }}"></script>
+  <!-- Store variables for JavaScript -->
+  <script>
+    var config = {
+      playerName: "{{ session['player_name'] }}",
+      chatMessages: {{ chat_messages|tojson|safe }},
+      votes: {{ votes|tojson|safe }},
+      autoSendName: "{{ auto_send_name }}"
+    };
+  </script>
+{% endblock %}
+
+{% block h1 %}Round{% endblock %}
+
+{% block content %}
+
+  <div id="game-content">
+
     <h2>Players:</h2>
-    <form action="/results" method="post">
-      {% for player in players %}
+    <form id="vote-form" action="/game" method="post" onsubmit="sendVoteMessage(); return False">
+      {% for option in voting_options %}
       <label>
-        <input type="checkbox" name="{{ player }}" value="{{ player }}">
-        {{ player }}{% if player in traitors %} (Traitor){% endif %}
+        <input type="radio" name="vote" value="{{ option }}">
+        {{ option }}{% if option in traitors %} (Traitor){% endif %}
       </label>
       <br>
       {% endfor %}
       <br>
       <input type="submit" value="Submit">
     </form>
-  </body>
-</html>
+  </div>
+
+  <div id="chat-containers">
+    <h2>Chat:</h2>
+    <div id="chatbox"></div>
+    <form onsubmit="sendChat(); return false;">
+      <input type="text" id="chatinput">
+      <input type="submit" value="Send">
+    </form>
+  </div>
+
+{% endblock %}

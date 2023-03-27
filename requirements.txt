@@ -1,4 +1,5 @@
 flask
+flask-socketio
 isort
 black
 flake8
