@@ -18,6 +18,7 @@ enable_multi_browser_logon = False
 min_no_players = 3
 end_game_option_label = "End game"
 auto_send_name = "info"
+traitor_result = None
 
 # global
 traitor_result = None
@@ -72,7 +73,7 @@ def start_game():
 
 @app.route("/game", methods=["GET", "POST"])
 def game():
-    global traitors, game_started, votes, vote_off, players
+    global traitors, game_started, votes, vote_off, players, traitor_result
     message = ""
     if not game_started:
         return redirect("/wait")
@@ -91,13 +92,24 @@ def game():
         # player = session["player_name"]
         if player in votes:
             message = "You have already voted"
+        elif player == traitor_result:
+            players.remove(player)
+            vote_off.append(player)
+            message = f"{player} has been eliminated by the Traitors!"
+            handle_message({'sender': auto_send_name, 'message': message})
+            socketio.emit("next-round")
+            return redirect('/you-lost')
         else:
             vote = request.form["vote"]
             votes[player] = vote
             message = f"You voted for {vote}"
             if len(votes) == len(players):
 
-                all_player_result = round_result(list(votes))
+                all_player_votes = list(votes.values())
+                all_player_result = round_result(all_player_votes)
+
+                traitor_votes = [vote for player, vote in votes.items() if player in traitors]
+                traitor_result = round_result(traitor_votes)
 
                 if all_player_result == end_game_option_label:
                     socketio.emit("end-game")
