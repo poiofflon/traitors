@@ -96,15 +96,14 @@ def game():
             players.remove(player)
             vote_off.append(player)
             message = f"{player} has been eliminated by the Traitors!"
-            handle_message({'sender': auto_send_name, 'message': message})
+            handle_message({"sender": auto_send_name, "message": message})
             socketio.emit("next-round")
-            return redirect('/you-lost')
+            return redirect("/you-lost")
         else:
             vote = request.form["vote"]
             votes[player] = vote
             message = f"You voted for {vote}"
             if len(votes) == len(players):
-
                 all_player_votes = list(votes.values())
                 all_player_result = round_result(all_player_votes)
 
@@ -116,15 +115,17 @@ def game():
                     return redirect("/results")
 
                 if all_player_result in traitors:
-                    message = f"Congratulations Faithfuls, you have eliminated player '{all_player_result}' " \
-                              f"who was a Traitor"
+                    message = (
+                        f"Congratulations Faithfuls, you have eliminated player '{all_player_result}' "
+                        f"who was a Traitor"
+                    )
                 else:
                     message = f"Faithfuls, you voted off player '{all_player_result}' who was a Faithful"
 
                 players.remove(all_player_result)
                 vote_off.append(all_player_result)
                 votes.clear()
-                handle_message({'sender': auto_send_name, 'message': message})
+                handle_message({"sender": auto_send_name, "message": message})
                 socketio.emit("next-round")
 
     if player in vote_off:
@@ -141,7 +142,7 @@ def game():
         message=message,
         votes=votes,
         chat_messages=chat_messages,
-        auto_send_name=auto_send_name
+        auto_send_name=auto_send_name,
     )
 
 
@@ -157,7 +158,6 @@ def max_votes(vote_list):
 
 
 def round_result(vote_list):
-
     # who got the most votes
     max_vote_list = max_votes(vote_list)
 
