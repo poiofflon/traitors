@@ -1,31 +1,87 @@
+/* took off the flex stuff on the body as don't think you need it.
+These CSS rules apply to all devices. It's known as 'mobile first'. You style small devices
+and then add media queries to larger screens to over ride only the rules you need to change */
 body {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start
-  align-items: center;
+    color: #111;
+    font-family: sans-serif;
 }
 
 #main {
-  display: flex;
-  justify-content: space-around;
-  align-items: flex-start;
-  width: 100%;
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-start;
+    width: 100%;
+    /* This makes the two divs stack AND go in reverse order so Chat is on top. 
+    You can change use column instead of column-reverse to have the chat at the bottom */
+    flex-direction: column-reverse;
 }
 
-#game-content {
-  flex: 1;
-  max-width: 50%;
+/* On mobile have columns full width */
+#game-content,
+#chat-containers {
+    width: 100%;
 }
 
-#chat-container {
-  flex: 1;
-  max-width: 50%;
+
+h1,
+h2,
+h3 {
+    text-transform: uppercase;
 }
 
+/* In regular mode a 100% width div with 10px padding is wider than the screen because 
+the padding is added to that 100%. box sizing border box means padding isn't added onto the width. 
+*/
+#chatinput {
+    box-sizing: border-box;
+}
+
+
+
+#chat-containers textarea {
+    padding: 10px;
+    max-width: 100%;
+    min-width: 100%;
+    min-height: 60px;
+    max-height: 100px;
+}
+
+/* Change the height of this for mobile so you can still see the players bit underneath. Might need adjusting */
 #chatbox {
-  height: 500px;
-  overflow-y: scroll;
-  border: 1px solid #ccc;
-  padding: 10px;
-  margin-bottom: 10px;
+    height: 200px;
+    overflow-y: scroll;
+    border: 1px solid #ccc;
+    padding: 10px;
+    /* bit of space beneath chat box */
+    margin-bottom: 10px;
+}
+
+/* make buttons full width and stand out a bit more */
+input[type=submit] {
+    display: block;
+    padding: 10px;
+    width: 100%;
+    background: #111;
+    color: white;
+    border: 0;
+}
+
+/* This kicks in at 768px wide which is an ipad in portrait mode. Anything 768px wide or bigger
+will use all the CSS rules above AND these CSS rules below. Smaller devices ignore this bit. 
+It's called a 'media query'. If you are only using it on mobile no one will even see this but just in case... */
+@media screen and (min-width: 768px) {
+
+    /* switch the main content to display things side by side */
+    #main {
+        flex-direction: row;
+    }
+
+    /* give our columns width so they dgo side by side */
+    #game-content {
+        width: 50%;
+    }
+
+    #chat-containers {
+        width: 50%;
+    }
 }
