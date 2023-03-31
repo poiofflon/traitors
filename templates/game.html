@@ -10,7 +10,8 @@
       playerName: "{{ session['player_name'] }}",
       chatMessages: {{ chat_messages|tojson|safe }},
       votes: {{ votes|tojson|safe }},
-      autoSendName: "{{ auto_send_name }}"
+      autoSendName: "{{ auto_send_name }}",
+      endGameOptionLabel: "{{ end_game_option_label }}"
     };
   </script>
 {% endblock %}
@@ -26,7 +27,9 @@
       {% for option in voting_options %}
       <label>
         <input type="radio" name="vote" value="{{ option }}">
-        {{ option }}{% if option in traitors %} (Traitor){% endif %}
+          <div class="player-name" onclick="togglePlayerSelection(this)">
+            {{ option }}{% if option in traitors %} (Traitor){% endif %}
+          </div>
       </label>
       <br>
       {% endfor %}
