@@ -1,14 +1,15 @@
 import random
 
 from flask import Flask, redirect, render_template, request, session
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, join_room, leave_room
 
 app = Flask(__name__)
 app.secret_key = "some_secret"
 app.static_folder = "static"
 socketio = SocketIO(app, async_mode="threading")
 
-players = []
+
+players = {}
 vote_off = []
 traitors = []
 votes = {}
@@ -19,18 +20,23 @@ min_no_players = 3
 end_game_option_label = "End game"
 auto_send_name = "info"
 traitor_result = None
+default_chat_room = "all"
+rooms = {}
 
 # global
 traitor_result = None
 
-chat_messages = [{"sender": auto_send_name, "message": "Welcome to The Traitors!"}]
+# {room_name: [{sender: message, etc}]}, room_name_2: etc
+chat_messages = {default_chat_room: [{"sender": auto_send_name, "message": "Welcome to The Traitors!"}]}
 
 
 @app.route("/", methods=["GET", "POST"])
 def index():
     if session.get("player_name"):
-        if session["player_name"] not in players:
-            players.append(session["player_name"])
+        player_name = session.get("player_name")
+        if player_name not in players:
+            players[player_name] = {'current_chat_room': None, 'default_chat_rooms': default_chat_room,
+                                    'joined_rooms': [], 'sid': None}
         return redirect("/wait")
 
     if request.method == "POST":
@@ -38,8 +44,10 @@ def index():
         if requested_player_name in players:
             message = f"Requested player name '{requested_player_name}' is taken. Please choose another name."
             return render_template("index.html", player_count=len(players), message=message)
-        session["player_name"] = request.form["player_name"]
-        players.append(session["player_name"])
+        player_name = requested_player_name
+        session['player_name'] = player_name
+        players[player_name] = {'current_chat_room': None, 'default_chat_rooms': default_chat_room,
+                                'joined_rooms': [], 'sid': None}
         return redirect("/wait")
 
     return render_template("index.html", player_count=len(players), message="Logon to play")
@@ -66,7 +74,7 @@ def start_game():
     global game_started, admin
     game_started = True
     traitor_count = len(players) // 3
-    traitors.extend(random.sample(players, traitor_count))
+    traitors.extend(random.sample(list(players), traitor_count))
     socketio.emit("start-game")
     return redirect("/game")
 
@@ -80,28 +88,29 @@ def game():
     if not session.get("player_name"):
         return redirect("/")
 
-    player = session["player_name"]
+    player_name = session["player_name"]
 
     if request.method == "GET":
-        if player in traitors:
+        if player_name in traitors:
             message = "Traitor, all you need to do to win is work with your fellow Traitors to survive the eliminations"
         else:
             message = "Faithful, you need to work with your fellow Faithfuls to vote off the Traitors to win"
 
     if request.method == "POST":
         # player = session["player_name"]
-        if player in votes:
+        if player_name in votes:
             message = "You have already voted"
-        elif player == traitor_result:
-            players.remove(player)
-            vote_off.append(player)
-            message = f"{player} has been eliminated by the Traitors!"
+        elif player_name == traitor_result:
+            player = players[player_name]
+            players.pop(player_name)
+            vote_off[player_name] = player
+            message = f"{player_name} has been eliminated by the Traitors!"
             handle_message({"sender": auto_send_name, "message": message})
             socketio.emit("next-round")
             return redirect("/you-lost")
         else:
             vote = request.form["vote"]
-            votes[player] = vote
+            votes[player_name] = vote
             message = f"You voted for {vote}"
             if len(votes) == len(players):
                 all_player_votes = list(votes.values())
@@ -122,18 +131,21 @@ def game():
                 else:
                     message = f"Faithfuls, you voted off player '{all_player_result}' who was a Faithful"
 
-                players.remove(all_player_result)
-                vote_off.append(all_player_result)
+                players.pop(all_player_result)
+                vote_off[player_name] = all_player_result
                 votes.clear()
                 handle_message({"sender": auto_send_name, "message": message})
                 socketio.emit("next-round")
 
-    if player in vote_off:
+    if player_name in vote_off:
         return redirect("/you-lost")
 
-    player_voting_option = players.copy() + [end_game_option_label]
-    player_voting_option.remove(player)
-    player_traitor_list = traitors if player in traitors else []
+    player_voting_option = list(players.keys()) + [end_game_option_label]
+    player_voting_option.remove(player_name)
+    player_traitor_list = traitors if player_name in traitors else []
+
+    player_chat_room = players[player_name]['current_chat_room']
+    chat_room_messages = chat_messages[player_chat_room]
 
     return render_template(
         "game.html",
@@ -141,8 +153,9 @@ def game():
         traitors=player_traitor_list,
         message=message,
         votes=votes,
-        chat_messages=chat_messages,
+        chat_messages=chat_room_messages,
         auto_send_name=auto_send_name,
+        end_game_option_label=end_game_option_label
     )
 
 
@@ -204,10 +217,55 @@ def you_lost():
 
 
 @socketio.on("message")
-def handle_message(data):
+def handle_message(data, to_players):
     """receive messages data from client, store server side, push to all clients"""
-    chat_messages.append(data)
-    socketio.emit("message", data)
+
+    room_key = default_chat_room if to_players == [] or len(to_players) == len(players) else tuple(to_players)
+
+    if room_key == default_chat_room:
+        chat_messages[default_chat_room].append(data)
+        socketio.emit("message", data)
+    else:
+        to_players.append(session.get('player_name'))
+        to_players.sort()
+        room_key = tuple(to_players)
+        if room_key in rooms:
+            room_name = rooms[room_key]
+        if room_key not in rooms:
+            room_name = str(len(rooms) + 1)
+            rooms[room_key] = room_name
+            for player_name in to_players:
+                player = players[player_name]
+                sid = player['sid']
+                join_room(room=room_name, sid=sid)
+                player['joined_rooms'].append(room_key)
+            chat_messages[room_key] = [data]
+        else:
+            chat_messages[room_key].append(data)
+        socketio.emit("message", data, to=room_name)
+
+
+@socketio.event
+def connect():
+    player_name = session.get('player_name')
+    if player_name in players:
+        player = players[player_name]
+        sid = request.sid
+        player['sid'] = sid
+        for room_key in player['joined_rooms']:
+            join_room(rooms[room_key], sid)
+    else:
+        player = {'current_chat_room': default_chat_room, 'joined_rooms': [], 'sid': request.sid}
+        players[player_name] = player
+
+
+@socketio.event
+def disconnect():
+    pass
+    # player_name = session.get('player_name')
+    # sid = players[player_name]['sid']
+    # for room_key in players[player_name]['joined_rooms']:
+    #     leave_room(room_key, sid)
 
 
 if __name__ == "__main__":
