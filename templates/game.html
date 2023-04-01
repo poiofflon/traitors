@@ -25,11 +25,13 @@
     <h2>Players:</h2>
     <form id="vote-form" action="/game" method="post" onsubmit="sendVoteMessage(); return False">
       {% for option in voting_options %}
+      {% set display_option = option %}
+      {% if option in traitors %}
+        {% set display_option = display_option ~ ' (Traitor)' %}
+      {% endif %}
       <label>
         <input type="radio" name="vote" value="{{ option }}">
-          <div class="player-name" onclick="togglePlayerSelection(this)">
-            {{ option }}{% if option in traitors %} (Traitor){% endif %}
-          </div>
+          <div class="player-name" data-player-name="{{ option }}" onclick="togglePlayerSelection(this)">{{ display_option }}</div>
       </label>
       <br>
       {% endfor %}

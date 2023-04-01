@@ -75,7 +75,8 @@ function sendVoteMessage() {
 
 // Add this function to toggle player selection
 function togglePlayerSelection(element) {
-  var playerName = element.textContent.trim();
+  //var playerName = element.textContent.trim();
+  var playerName = element.dataset.playerName.trim()
   if (playerName == config.endGameOptionLabel) {
     // don't enable select/deselect of end game label
   } else if (element.classList.contains('selected')) {

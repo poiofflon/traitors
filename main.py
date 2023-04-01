@@ -35,8 +35,7 @@ def index():
     if session.get("player_name"):
         player_name = session.get("player_name")
         if player_name not in players:
-            players[player_name] = {'current_chat_room': None, 'default_chat_rooms': default_chat_room,
-                                    'joined_rooms': [], 'sid': None}
+            players[player_name] = {'current_chat_room': default_chat_room, 'joined_rooms': [], 'sid': None}
         return redirect("/wait")
 
     if request.method == "POST":
@@ -46,8 +45,7 @@ def index():
             return render_template("index.html", player_count=len(players), message=message)
         player_name = requested_player_name
         session['player_name'] = player_name
-        players[player_name] = {'current_chat_room': None, 'default_chat_rooms': default_chat_room,
-                                'joined_rooms': [], 'sid': None}
+        players[player_name] = {'current_chat_room': default_chat_room, 'joined_rooms': [], 'sid': None}
         return redirect("/wait")
 
     return render_template("index.html", player_count=len(players), message="Logon to play")
@@ -131,8 +129,7 @@ def game():
                 else:
                     message = f"Faithfuls, you voted off player '{all_player_result}' who was a Faithful"
 
-                players.pop(all_player_result)
-                vote_off[player_name] = all_player_result
+                vote_off.append(players.pop(all_player_result))
                 votes.clear()
                 handle_message({"sender": auto_send_name, "message": message})
                 socketio.emit("next-round")
@@ -217,10 +214,10 @@ def you_lost():
 
 
 @socketio.on("message")
-def handle_message(data, to_players):
+def handle_message(data, to_players=None):
     """receive messages data from client, store server side, push to all clients"""
 
-    room_key = default_chat_room if to_players == [] or len(to_players) == len(players) else tuple(to_players)
+    room_key = default_chat_room if to_players is None or len(to_players) == len(players) else tuple(to_players)
 
     if room_key == default_chat_room:
         chat_messages[default_chat_room].append(data)
