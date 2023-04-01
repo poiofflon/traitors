@@ -35,7 +35,7 @@ def index():
     if session.get("player_name"):
         player_name = session.get("player_name")
         if player_name not in players:
-            players[player_name] = {'current_chat_room': default_chat_room, 'joined_rooms': [], 'sid': None}
+            players[player_name] = {"current_chat_room": default_chat_room, "joined_rooms": [], "sid": None}
         return redirect("/wait")
 
     if request.method == "POST":
@@ -44,8 +44,8 @@ def index():
             message = f"Requested player name '{requested_player_name}' is taken. Please choose another name."
             return render_template("index.html", player_count=len(players), message=message)
         player_name = requested_player_name
-        session['player_name'] = player_name
-        players[player_name] = {'current_chat_room': default_chat_room, 'joined_rooms': [], 'sid': None}
+        session["player_name"] = player_name
+        players[player_name] = {"current_chat_room": default_chat_room, "joined_rooms": [], "sid": None}
         return redirect("/wait")
 
     return render_template("index.html", player_count=len(players), message="Logon to play")
@@ -141,7 +141,7 @@ def game():
     player_voting_option.remove(player_name)
     player_traitor_list = traitors if player_name in traitors else []
 
-    player_chat_room = players[player_name]['current_chat_room']
+    player_chat_room = players[player_name]["current_chat_room"]
     chat_room_messages = chat_messages[player_chat_room]
 
     return render_template(
@@ -152,7 +152,7 @@ def game():
         votes=votes,
         chat_messages=chat_room_messages,
         auto_send_name=auto_send_name,
-        end_game_option_label=end_game_option_label
+        end_game_option_label=end_game_option_label,
     )
 
 
@@ -223,7 +223,7 @@ def handle_message(data, to_players=None):
         chat_messages[default_chat_room].append(data)
         socketio.emit("message", data)
     else:
-        to_players.append(session.get('player_name'))
+        to_players.append(session.get("player_name"))
         to_players.sort()
         room_key = tuple(to_players)
         if room_key in rooms:
@@ -233,9 +233,9 @@ def handle_message(data, to_players=None):
             rooms[room_key] = room_name
             for player_name in to_players:
                 player = players[player_name]
-                sid = player['sid']
+                sid = player["sid"]
                 join_room(room=room_name, sid=sid)
-                player['joined_rooms'].append(room_key)
+                player["joined_rooms"].append(room_key)
             chat_messages[room_key] = [data]
         else:
             chat_messages[room_key].append(data)
@@ -244,25 +244,25 @@ def handle_message(data, to_players=None):
 
 @socketio.event
 def connect():
-    player_name = session.get('player_name')
+    player_name = session.get("player_name")
     if player_name in players:
         player = players[player_name]
         sid = request.sid
-        player['sid'] = sid
-        for room_key in player['joined_rooms']:
+        player["sid"] = sid
+        for room_key in player["joined_rooms"]:
             join_room(rooms[room_key], sid)
     else:
-        player = {'current_chat_room': default_chat_room, 'joined_rooms': [], 'sid': request.sid}
+        player = {"current_chat_room": default_chat_room, "joined_rooms": [], "sid": request.sid}
         players[player_name] = player
 
 
 @socketio.event
 def disconnect():
-    pass
-    # player_name = session.get('player_name')
-    # sid = players[player_name]['sid']
-    # for room_key in players[player_name]['joined_rooms']:
-    #     leave_room(room_key, sid)
+    player_name = session.get('player_name')
+    player = players[player_name]
+    sid = player['sid']
+    for room_key in player['joined_rooms']:
+        leave_room(room_key, sid)
 
 
 if __name__ == "__main__":
