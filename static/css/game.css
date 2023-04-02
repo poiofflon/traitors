@@ -34,9 +34,9 @@ the padding is added to that 100%. box sizing border box means padding isn't add
 */
 #chatinput {
     box-sizing: border-box;
+    width: 100%;
+    margin-bottom: 10px;
 }
-
-
 
 #chat-containers textarea {
     padding: 10px;
@@ -54,6 +54,7 @@ the padding is added to that 100%. box sizing border box means padding isn't add
     padding: 10px;
     /* bit of space beneath chat box */
     margin-bottom: 10px;
+    width: 100%;
 }
 
 /* make buttons full width and stand out a bit more */
@@ -89,8 +90,10 @@ It's called a 'media query'. If you are only using it on mobile no one will even
 .player-name {
   cursor: pointer;
   user-select: none;
+  display: inline-block;
 }
 
 .player-name.selected {
   background-color: #ccc;
+  width: 90%;
 }
