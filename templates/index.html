@@ -1,21 +1,16 @@
 {% extends "base.html" %}
-
 {% block h1 %}Traitors game join page{% endblock %}
-
 {% block content %}
-
-  <h1>Welcome to the Traitors</h1>
-  <p>Number of players joined: {{ player_count }}</p>
-  {% if session.player_name %}
-    <p>Welcome, {{ session.player_name }}!</p>
-    <a href="/wait">Go to Lobby</a>
-  {% else %}
-    <p>You have not joined the game yet.</p>
-    <form method="post" action="/">
-      <input type="text" name="player_name" placeholder="Enter your name">
-      <button type="submit">Join</button>
-    </form>
-  {% endif %}
-
+<h1>Welcome to the Traitors</h1>
+<p>Number of players joined: {{ player_count }}</p>
+{% if session.player_name %}
+<p>Welcome, {{ session.player_name }}!</p>
+<a href="/wait">Go to Lobby</a>
+{% else %}
+<p>You have not joined the game yet.</p>
+<form method="post" action="/">
+    <input type="text" name="player_name" placeholder="Enter your name">
+    <button type="submit">Join</button>
+</form>
+{% endif %}
 {% endblock %}
-
