@@ -151,7 +151,6 @@ def game():
             message = f"You voted for {vote}"
 
             if votes == len(players):
-
                 all_player_result = round_result([player.vote for player in players])
                 traitor_votes = [player.vote for player in players if player in traitors]
                 traitor_result = round_result(traitor_votes) if traitor_votes else None
@@ -302,7 +301,7 @@ def connect(**kwargs):
 
 @socketio.event
 def disconnect(**kwargs):
-    player = get_player_by_name(session.get('player_name'))
+    player = get_player_by_name(session.get("player_name"))
     for room_key in player.joined_rooms:
         leave_room(room_key, player.sid)
     player.previous_sid = player.sid
