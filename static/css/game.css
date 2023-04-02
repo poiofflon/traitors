@@ -11,7 +11,7 @@ body {
     justify-content: space-around;
     align-items: flex-start;
     width: 100%;
-    /* This makes the two divs stack AND go in reverse order so Chat is on top. 
+    /* This makes the two divs stack AND go in reverse order so Chat is on top.
     You can change use column instead of column-reverse to have the chat at the bottom */
     flex-direction: column-reverse;
 }
@@ -29,14 +29,14 @@ h3 {
     text-transform: uppercase;
 }
 
-/* In regular mode a 100% width div with 10px padding is wider than the screen because 
-the padding is added to that 100%. box sizing border box means padding isn't added onto the width. 
+/* In regular mode a 100% width div with 10px padding is wider than the screen because
+the padding is added to that 100%. box sizing border box means padding isn't added onto the width.
 */
 #chatinput {
     box-sizing: border-box;
+    width: 100%;
+    margin-bottom: 10px;
 }
-
-
 
 #chat-containers textarea {
     padding: 10px;
@@ -54,6 +54,7 @@ the padding is added to that 100%. box sizing border box means padding isn't add
     padding: 10px;
     /* bit of space beneath chat box */
     margin-bottom: 10px;
+    width: 100%;
 }
 
 /* make buttons full width and stand out a bit more */
@@ -67,7 +68,7 @@ input[type=submit] {
 }
 
 /* This kicks in at 768px wide which is an ipad in portrait mode. Anything 768px wide or bigger
-will use all the CSS rules above AND these CSS rules below. Smaller devices ignore this bit. 
+will use all the CSS rules above AND these CSS rules below. Smaller devices ignore this bit.
 It's called a 'media query'. If you are only using it on mobile no one will even see this but just in case... */
 @media screen and (min-width: 768px) {
 
@@ -84,4 +85,15 @@ It's called a 'media query'. If you are only using it on mobile no one will even
     #chat-containers {
         width: 50%;
     }
+}
+
+.player-name {
+  cursor: pointer;
+  user-select: none;
+  display: inline-block;
+}
+
+.player-name.selected {
+  background-color: #ccc;
+  width: 90%;
 }

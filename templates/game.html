@@ -9,8 +9,8 @@
     var config = {
       playerName: "{{ session['player_name'] }}",
       chatMessages: {{ chat_messages|tojson|safe }},
-      votes: {{ votes|tojson|safe }},
-      autoSendName: "{{ auto_send_name }}"
+      autoSendName: "{{ auto_send_name }}",
+      endGameOptionLabel: "{{ end_game_option_label }}"
     };
   </script>
 {% endblock %}
@@ -24,9 +24,13 @@
     <h2>Players:</h2>
     <form id="vote-form" action="/game" method="post" onsubmit="sendVoteMessage(); return False">
       {% for option in voting_options %}
+      {% set display_option = option %}
+      {% if option in traitors %}
+        {% set display_option = display_option ~ ' (Traitor)' %}
+      {% endif %}
       <label>
         <input type="radio" name="vote" value="{{ option }}">
-        {{ option }}{% if option in traitors %} (Traitor){% endif %}
+          <div class="player-name" data-player-name="{{ option }}" onclick="togglePlayerSelection(this)">{{ display_option }}</div>
       </label>
       <br>
       {% endfor %}

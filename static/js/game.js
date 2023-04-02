@@ -1,4 +1,5 @@
 var socket;
+var selectedPlayers = [];
 
 
 $(document).ready(function() {
@@ -49,7 +50,7 @@ function sendChat() {
     console.log('sendChat() called');
     var message = $('#chatinput').val();
     if (message) {
-      socket.emit('message', {'sender': config.playerName, 'message': message});
+      socket.emit('message', {'sender': config.playerName, 'message': message}, selectedPlayers);
       // clear chat input
       $('#chatinput').val('');
     }
@@ -70,4 +71,21 @@ function sendVoteMessage() {
     // Return false to prevent the default form submission behavior while the message is being sent
     return false;
 }
+
+
+// Add this function to toggle player selection
+function togglePlayerSelection(element) {
+  //var playerName = element.textContent.trim();
+  var playerName = element.dataset.playerName.trim()
+  if (playerName == config.endGameOptionLabel) {
+    // don't enable select/deselect of end game label
+  } else if (element.classList.contains('selected')) {
+    element.classList.remove('selected');
+    selectedPlayers.splice(selectedPlayers.indexOf(playerName), 1);
+  } else {
+    element.classList.add('selected');
+    selectedPlayers.push(playerName);
+  }
+}
+
 
