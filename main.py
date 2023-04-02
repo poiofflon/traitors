@@ -129,7 +129,7 @@ def game():
                 else:
                     message = f"Faithfuls, you voted off player '{all_player_result}' who was a Faithful"
 
-                vote_off.append(players.pop(all_player_result))
+                vote_off[all_player_result] = players.pop(all_player_result)
                 votes.clear()
                 handle_message({"sender": auto_send_name, "message": message})
                 socketio.emit("next-round")
