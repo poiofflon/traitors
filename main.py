@@ -223,7 +223,7 @@ def round_result(vote_list):
 
 @app.route("/results", methods=["GET", "POST"])
 def results():
-    global traitors, votes, game_started, players
+    global traitors, votes, game_started, players, chat_messages
 
     if not game_started:
         return redirect("/wait")
@@ -235,6 +235,7 @@ def results():
         game_started = False
         players.clear()
         traitors.clear()
+        chat_messages = [(default_chat_room, {"sender": auto_send_name, "message": "Welcome to The Traitors!"})]
         for player in players:
             player.vote = None
         return redirect("/")
