@@ -190,6 +190,7 @@ def game():
         chat_messages=player_messages,
         auto_send_name=auto_send_name,
         end_game_option_label=end_game_option_label,
+        player_vote=player.vote
     )
 
 
