@@ -258,6 +258,7 @@ def you_lost():
 def handle_message(data, to_players=None):
     """receive messages data from client, store server side, push to all clients"""
     if to_players:
+        data['sender'] = data['sender'] + " (" + ", ".join(to_players) + ")"
         # include current player name in private chat rooms
         to_players.append(session.get("player_name"))
         to_players.sort()
