@@ -234,11 +234,11 @@ def results():
         votes = 0
         vote_off.clear()
         game_started = False
+        for player in players:
+            player.vote = None
         players.clear()
         traitors.clear()
         chat_messages = [(default_chat_room, {"sender": auto_send_name, "message": "Welcome to The Traitors!"})]
-        for player in players:
-            player.vote = None
         return redirect("/")
 
     if any([t in players for t in traitors]):
