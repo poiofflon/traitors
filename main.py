@@ -28,7 +28,7 @@ def get_available_game_id():
 
 
 class Game:
-    def __init__(self, id, admin: 'Player'):
+    def __init__(self, id, admin: "Player"):
         self.players = [admin]
         self.vote_off = []
         self.traitors = []
@@ -128,9 +128,10 @@ def join_game():
             return redirect("/wait")
 
     message = ""
-    available_games = [{'id': g.game_id, 'name': g.game_name} for g in games if g]
-    return render_template("join_game.html", player_joined_game=bool(player.game), available_games=available_games,
-                           message=message)
+    available_games = [{"id": g.game_id, "name": g.game_name} for g in games if g]
+    return render_template(
+        "join_game.html", player_joined_game=bool(player.game), available_games=available_games, message=message
+    )
 
 
 @app.route("/wait", methods=["GET", "POST"])
@@ -211,7 +212,7 @@ def game():
             if game.votes == len(game.players):
                 all_player_result = round_result([player.vote for player in game.players])
                 traitor_votes = [player.vote for player in game.players if player in game.traitors]
-                traitor_result = round_result(traitor_votes) if traitor_votes else None
+                game.traitor_result = round_result(traitor_votes) if traitor_votes else None
 
                 if all_player_result == end_game_option_label:
                     socketio.emit("end-game")
