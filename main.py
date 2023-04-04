@@ -10,22 +10,38 @@ socketio = SocketIO(app, async_mode="threading")
 
 
 registered_players = []
-players = []
-vote_off = []
-traitors = []
-votes = 0
-game_started = False
-admin = "Offlon"
-enable_multi_browser_logon = False
 min_no_players = 3
+max_no_games = 10
 end_game_option_label = "End game"
 auto_send_name = "info"
-traitor_result = None
 default_chat_room = "All"
 rooms = {default_chat_room: 0}
 
-# global
-traitor_result = None
+games = [None] * 10
+
+
+def get_available_game_id():
+    for i, g in enumerate(games):
+        if not g:
+            return i
+    return -1
+
+
+class Game:
+    def __init__(self, id, admin: 'Player'):
+        self.players = [admin]
+        self.vote_off = []
+        self.traitors = []
+        self.votes = 0
+        self.game_started = False
+        self.admin = admin
+        self.traitor_result = None
+        self.game_id = id
+
+    @property
+    def game_name(self):
+        return f"{self.admin.player_name}'s game"
+
 
 # {room_name: [{sender: message, etc}]}, room_name_2: etc
 chat_messages = [(default_chat_room, {"sender": auto_send_name, "message": "Welcome to The Traitors!"})]
@@ -37,9 +53,9 @@ class Player:
         self.sid = None
         self.previous_sid = None
         self.joined_rooms = [default_chat_room]
-        # self.current_chat_room = default_chat_room
-        self.is_admin = player_name == admin
+        self.is_admin = False
         self.vote = None
+        self.game = None
 
     def __repr__(self):
         return f"Player({self.player_name})"
@@ -70,64 +86,106 @@ def register_player(player_name):
 @app.route("/", methods=["GET", "POST"])
 def index():
     if session.get("player_name"):
-        player_name = session.get("player_name")
-        player = get_player_by_name(player_name)
-        if player not in players:
-            players.append(player)
-        return redirect("/wait")
+        get_player_by_name(session["player_name"])
+        return redirect("/join_game")
 
     if request.method == "POST":
         requested_player_name = request.form["player_name"]
         if requested_player_name in registered_players:
             message = f"Requested player name '{requested_player_name}' is taken. Please choose another name."
-            return render_template("index.html", player_count=len(players), message=message)
-        player = register_player(requested_player_name)
-        players.append(player)
+            return render_template("index.html", player_count=len(game.players), message=message)
+        register_player(requested_player_name)
+        return redirect("/join_game")
+
+    return render_template("index.html", player_count=len(registered_players), message="Logon to play")
+
+
+@app.route("/join_game", methods=["GET", "POST"])
+def join_game():
+    if not session.get("player_name") or session["player_name"] not in registered_players:
+        return redirect("/")
+    player = get_player_by_name(session["player_name"])
+    id = get_available_game_id()
+
+    if player.game:
         return redirect("/wait")
 
-    return render_template("index.html", player_count=len(players), message="Logon to play")
+    if request.method == "POST":
+        if "host_game" in request.form:
+            if id > -1:
+                player.is_admin = True
+                game = Game(id, player)
+                games[id] = game
+                player.game = game
+                return redirect("/wait")
+            else:
+                return redirect("/join_game")
+        if "join_game" in request.form:
+            game_id = request.form["join_game"]
+            game = games[int(game_id)]
+            player.game = game
+            game.players.append(player)
+            return redirect("/wait")
+
+    message = ""
+    available_games = [{'id': g.game_id, 'name': g.game_name} for g in games if g]
+    return render_template("join_game.html", player_joined_game=bool(player.game), available_games=available_games,
+                           message=message)
 
 
 @app.route("/wait", methods=["GET", "POST"])
 def wait():
     """Wait page until game starts"""
-    global admin
-    if not session.get("player_name") or session["player_name"] not in players:
-        return redirect("/")
     message = None
+    if not session.get("player_name") or session["player_name"] not in registered_players:
+        return redirect("/")
     player = get_player_by_name(session["player_name"])
+    if not player.game:
+        return redirect("/join_game")
+    game = player.game
+
     if player.is_admin:
         can_start_game = True
-        if len(players) < min_no_players:
+        if len(game.players) < min_no_players:
             message = "Recommend waiting until the minimum number of players have joined"
     else:
         can_start_game = False
-    return render_template("wait.html", players=players, admin=admin, can_start_game=can_start_game, message=message)
+
+    return render_template("wait.html", players=game.players, can_start_game=can_start_game, message=message)
 
 
 @app.route("/start_game", methods=["POST"])
 def start_game():
-    global game_started, admin
-    game_started = True
-    traitor_count = min(len(players) // 3, 1)
-    traitors.extend(random.sample(players, traitor_count))
+    if not session.get("player_name") or session["player_name"] not in registered_players:
+        return redirect("/")
+    player = get_player_by_name(session["player_name"])
+    if not player.game:
+        return redirect("/join_game")
+    game = player.game
+    if game.game_started:
+        return redirect("/game")
+
+    game.game_started = True
+    game.traitor_count = min(len(game.players) // 3, 1)
+    game.traitors.extend(random.sample(game.players, game.traitor_count))
     socketio.emit("start-game")
     return redirect("/game")
 
 
 @app.route("/game", methods=["GET", "POST"])
 def game():
-    global traitors, game_started, votes, vote_off, players, traitor_result
-    message = ""
-    if not game_started:
-        return redirect("/wait")
-    if not session.get("player_name"):
+    if not session.get("player_name") or session["player_name"] not in registered_players:
         return redirect("/")
-
     player = get_player_by_name(session["player_name"])
+    if not player.game:
+        return redirect("/join_game")
+    game = player.game
+
+    if not game.game_started:
+        return redirect("/wait")
 
     if request.method == "GET":
-        if player in traitors:
+        if player in game.traitors:
             message = "Traitor, all you need to do to win is work with your fellow Traitors to survive the eliminations"
         else:
             message = "Faithful, you need to work with your fellow Faithfuls to vote off the Traitors to win"
@@ -137,9 +195,9 @@ def game():
         if player.vote:
             message = "You have already voted"
         # eliminate traitor voted player when they try and vote
-        elif traitor_result and player == traitor_result:
-            players.remove(player)
-            vote_off.append(player)
+        elif game.traitor_result and player == game.traitor_result:
+            game.players.remove(player)
+            game.vote_off.append(player)
             message = f"{player.player_name} has been eliminated by the Traitors!"
             handle_message({"sender": auto_send_name, "message": message})
             socketio.emit("next-round")
@@ -147,19 +205,19 @@ def game():
         else:
             vote = request.form["vote"]
             player.vote = vote
-            votes += 1
+            game.votes += 1
             message = f"You voted for {vote}"
 
-            if votes == len(players):
-                all_player_result = round_result([player.vote for player in players])
-                traitor_votes = [player.vote for player in players if player in traitors]
+            if game.votes == len(game.players):
+                all_player_result = round_result([player.vote for player in game.players])
+                traitor_votes = [player.vote for player in game.players if player in game.traitors]
                 traitor_result = round_result(traitor_votes) if traitor_votes else None
 
                 if all_player_result == end_game_option_label:
                     socketio.emit("end-game")
                     return redirect("/results")
 
-                if all_player_result in traitors:
+                if all_player_result in game.traitors:
                     message = (
                         f"Congratulations Faithfuls, you have eliminated player '{all_player_result}' "
                         f"who was a Traitor"
@@ -167,19 +225,21 @@ def game():
                 else:
                     message = f"Faithfuls, you voted off player '{all_player_result}' who was a Faithful"
 
-                players.remove(all_player_result)
-                vote_off.append(get_player_by_name(all_player_result))
-                votes = 0
-                for p in players:
+                game.players.remove(all_player_result)
+                game.vote_off.append(get_player_by_name(all_player_result))
+                game.votes = 0
+                for p in game.players:
                     p.vote = None
+                    p.admin = None
+                    p.game = None
                 handle_message({"sender": auto_send_name, "message": message})
                 socketio.emit("next-round")
 
-    if player in vote_off:
+    if player in game.vote_off:
         return redirect("/you-lost")
 
-    player_voting_option = [p.player_name for p in players if p is not player] + [end_game_option_label]
-    player_traitor_list = [p.player_name for p in traitors if player in traitors]
+    player_voting_option = [p.player_name for p in game.players if p is not player] + [end_game_option_label]
+    player_traitor_list = [p.player_name for p in game.traitors if player in game.traitors]
     player_messages = [m[1] for m in chat_messages if m[0] in player.joined_rooms]
 
     return render_template(
@@ -224,24 +284,33 @@ def round_result(vote_list):
 
 @app.route("/results", methods=["GET", "POST"])
 def results():
-    global traitors, votes, game_started, players, chat_messages
+    global chat_messages
 
-    if not game_started:
+    if not session.get("player_name"):
+        return redirect("/")
+
+    player = get_player_by_name(session["player_name"])
+    game = player.game
+
+    if not game.game_started:
         return redirect("/wait")
 
     # play again
     if request.method == "POST":
-        votes = 0
-        vote_off.clear()
-        game_started = False
-        for player in players:
-            player.vote = None
-        players.clear()
-        traitors.clear()
+        game.votes = 0
+        games.vote_off.clear()
+        game.game_started = False
+        games.players.clear()
+        games.traitors.clear()
         chat_messages = [(default_chat_room, {"sender": auto_send_name, "message": "Welcome to The Traitors!"})]
+        for player in games.players:
+            player.vote = None
+            player.admin = None
+            player.game = None
+        games[game.game_id] = None
         return redirect("/")
 
-    if any([t in players for t in traitors]):
+    if any([t in games.players for t in game.traitors]):
         return render_template("game_over.html", message="The Traitors have won!")
 
     return render_template("game_over.html", message="The Faithful have won!")
@@ -249,7 +318,15 @@ def results():
 
 @app.route("/you-lost", methods=["GET"])
 def you_lost():
-    if not game_started:
+    global chat_messages
+
+    if not session.get("player_name"):
+        return redirect("/")
+
+    player = get_player_by_name(session["player_name"])
+    game = player.game
+
+    if not game.game_started:
         return redirect("/wait")
 
     return render_template("you_lost.html")
@@ -289,7 +366,9 @@ def connect(**kwargs):
     if "player_name" not in session:
         return redirect("/")
 
-    player = get_player_by_name(session.get("player_name"))
+    if not session.get("player_name") or session["player_name"] not in registered_players:
+        return redirect("/")
+    player = get_player_by_name(session["player_name"])
 
     if player.sid != request.sid:
         player.previous_sid = player.sid
@@ -304,7 +383,9 @@ def connect(**kwargs):
 
 @socketio.event
 def disconnect(**kwargs):
-    player = get_player_by_name(session.get("player_name"))
+    if not session.get("player_name") or session["player_name"] not in registered_players:
+        return redirect("/")
+    player = get_player_by_name(session["player_name"])
     for room_key in player.joined_rooms:
         leave_room(room_key, player.sid)
     player.previous_sid = player.sid

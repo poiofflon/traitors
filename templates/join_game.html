@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block h1 %}Traitors game join page{% endblock %}
+{% block content %}
+<h1>Welcome to the Traitors</h1>
+<p>Number of players joined: {{ player_count }}</p>
+{% if player_joined_game %}
+<p>Welcome, {{ session.player_name }}!</p>
+<a href="/wait">Go to Lobby</a>
+{% else %}
+<p>Select a game to join or start a game.</p>
+<form method="post" action="/join_game">
+    <button type="submit" name="join_game_button" {% if not available_games %}disabled{% endif %}>Join</button>
+    <select name="join_game" {% if not available_games %}disabled{% endif %}>
+        <option value="" selected disabled>Select a game</option>
+        {% for game in available_games %}
+            <option value={{ game.id }}>{{ game.name }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" name="host_game">Host a Game</button>
+</form>
+{% endif %}
+{% endblock %}
