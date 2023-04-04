@@ -190,6 +190,7 @@ def game():
         chat_messages=player_messages,
         auto_send_name=auto_send_name,
         end_game_option_label=end_game_option_label,
+        player_vote=player.vote,
     )
 
 
@@ -233,11 +234,11 @@ def results():
         votes = 0
         vote_off.clear()
         game_started = False
+        for player in players:
+            player.vote = None
         players.clear()
         traitors.clear()
         chat_messages = [(default_chat_room, {"sender": auto_send_name, "message": "Welcome to The Traitors!"})]
-        for player in players:
-            player.vote = None
         return redirect("/")
 
     if any([t in players for t in traitors]):
@@ -258,6 +259,7 @@ def you_lost():
 def handle_message(data, to_players=None):
     """receive messages data from client, store server side, push to all clients"""
     if to_players:
+        data["sender"] = data["sender"] + " (" + ", ".join(to_players) + ")"
         # include current player name in private chat rooms
         to_players.append(session.get("player_name"))
         to_players.sort()
