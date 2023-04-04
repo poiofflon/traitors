@@ -37,6 +37,7 @@ class Game:
         self.admin = admin
         self.traitor_result = None
         self.game_id = id
+        self.ended = False
 
     @property
     def game_name(self):
@@ -128,7 +129,7 @@ def join_game():
             return redirect("/wait")
 
     message = ""
-    available_games = [{"id": g.game_id, "name": g.game_name} for g in games if g]
+    available_games = [{"id": g.game_id, "name": g.game_name} for g in games if g and not g.ended and not g.game_started]
     return render_template(
         "join_game.html", player_joined_game=bool(player.game), available_games=available_games, message=message
     )
@@ -231,8 +232,7 @@ def game():
                 game.votes = 0
                 for p in game.players:
                     p.vote = None
-                    p.admin = None
-                    p.game = None
+
                 handle_message({"sender": auto_send_name, "message": message})
                 socketio.emit("next-round")
 
@@ -293,28 +293,38 @@ def results():
     player = get_player_by_name(session["player_name"])
     game = player.game
 
-    if not game.game_started:
+    if not game or not game.game_started:
         return redirect("/wait")
 
-    # play again
+    # final result
+    if any([t in games.players for t in game.traitors]):
+        message = "The Traitors have won!"
+    else:
+        message = "The Faithful have won!"
+
+    # player play again
     if request.method == "POST":
-        game.votes = 0
-        games.vote_off.clear()
-        game.game_started = False
-        games.players.clear()
-        games.traitors.clear()
-        chat_messages = [(default_chat_room, {"sender": auto_send_name, "message": "Welcome to The Traitors!"})]
-        for player in games.players:
-            player.vote = None
-            player.admin = None
-            player.game = None
-        games[game.game_id] = None
+        # for player in game.players:
+        player.vote = None
+        player.admin = None
+        player.game = None
         return redirect("/")
 
-    if any([t in games.players for t in game.traitors]):
-        return render_template("game_over.html", message="The Traitors have won!")
+    # game.votes = 0
+    # games.vote_off.clear()
+    # game.game_started = False
+    # games.players.clear()
+    # games.traitors.clear()
+    # chat_messages = [(default_chat_room, {"sender": auto_send_name, "message": "Welcome to The Traitors!"})]
+    # for player in games.players:
+    # player.vote = None
+    # player.admin = None
+    # player.game = None
 
-    return render_template("game_over.html", message="The Faithful have won!")
+    game.ended = True
+    games[game.game_id] = None
+
+    return render_template("game_over.html", message=message)
 
 
 @app.route("/you-lost", methods=["GET"])
